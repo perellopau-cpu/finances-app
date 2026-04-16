@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Finances Personals 2026</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow-x: hidden; max-width: 100vw; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; min-height: 100vh; }
+
+#config-banner { background: #fff3cd; border-bottom: 1px solid #ffc107; padding: 10px 20px; font-size: 13px; color: #856404; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+#config-banner input { flex: 1; min-width: 200px; padding: 6px 10px; border: 1px solid #ffc107; border-radius: 6px; font-size: 16px; background: white; }
+#config-banner button { background: #ffc107; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: #1a1a1a; white-space: nowrap; }
+#config-banner.hidden { display: none; }
+
+header { background: white; border-bottom: 1px solid #e5e5e5; padding: 0 16px; position: sticky; top: 0; z-index: 100; width: 100%; }
+.header-top { display: flex; align-items: center; justify-content: space-between; padding: 12px 0 0; gap: 8px; min-width: 0; }
+h1 { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+.header-btns { display: flex; gap: 6px; }
+.sync-btn { background: none; border: 1px solid #e5e5e5; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #666; }
+.sync-btn:hover { background: #f5f5f5; }
+.sync-btn:disabled { opacity: 0.5; pointer-events: none; }
+.cfg-btn { background: none; border: 1px solid #e5e5e5; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 16px; color: #666; }
+.cfg-btn:hover { background: #f5f5f5; }
+
+.month-nav { display: flex; align-items: center; gap: 8px; padding: 8px 0; flex-wrap: wrap; width: 100%; }
+.month-nav select { font-size: 16px; padding: 5px 8px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; color: #1a1a1a; cursor: pointer; min-width: 0; flex-shrink: 1; }
+.month-nav .nav-summary-btn { padding: 5px 12px; font-size: 13px; cursor: pointer; border: 1px solid #e0e0e0; border-radius: 8px; background: white; color: #666; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+.month-nav .nav-summary-btn:hover, .month-nav .nav-summary-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
+
+main { max-width: 960px; margin: 0 auto; padding: 16px; width: 100%; }
+#loader { text-align: center; padding: 60px 20px; color: #888; }
+.spinner { width: 32px; height: 32px; border: 3px solid #e5e5e5; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.metric { background: white; border-radius: 10px; padding: 12px 10px; border: 1px solid #e5e5e5; min-width: 0; }
+.metric-label { font-size: 11px; color: #888; margin-bottom: 4px; line-height: 1.3; }
+.metric-value { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 600px) { 
+  .metric-grid { grid-template-columns: repeat(2, 1fr) !important; } 
+  .metric-value { font-size: 14px; } 
+  .metric-label { font-size: 10px; }
+}
+.green { color: #16a34a; } .red { color: #dc2626; } .blue { color: #2563eb; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; min-width: 0; }
+@media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } .metric-grid { gap: 8px; } }
+.two-col > * { min-width: 0; overflow: hidden; }
+.panel { background: white; border-radius: 10px; border: 1px solid #e5e5e5; padding: 16px; min-width: 0; max-width: 100%; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.panel-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; }
+
+table { width: 100%; font-size: 13px; border-collapse: collapse; }
+th { text-align: left; color: #888; font-weight: 400; padding: 6px 6px; border-bottom: 1px solid #f0f0f0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+td { padding: 6px 6px; border-bottom: 1px solid #f5f5f5; vertical-align: top; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+td.amount { text-align: right; font-weight: 600; font-size: 13px; white-space: nowrap; vertical-align: middle; }
+td.ref-col { color: #1a1a1a; font-size: 12px; max-width: 160px; }
+.ref-text { display: block; color: #1a1a1a; }
+.ref-date { display: block; font-size: 11px; color: #bbb; margin-top: 2px; }
+.cat-pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; vertical-align: middle; }
+.del-btn { background: none; border: none; color: #ddd; cursor: pointer; font-size: 13px; padding: 0 4px; transition: color 0.1s; }
+tr:hover .del-btn { color: #bbb; }
+.del-btn:hover { color: #dc2626 !important; }
+
+.add-btn { background: none; border: 1px solid #e5e5e5; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #444; }
+.add-btn:hover { background: #f9f9f9; }
+.detail-btn { background: none; border: 1px solid #e5e5e5; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #666; white-space: nowrap; }
+.detail-btn:hover { background: #f5f5f5; }
+
+.form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+.form-row select, .form-row input { flex: 1; min-width: 90px; font-size: 16px; padding: 7px 10px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; color: #1a1a1a; }
+.save-btn { background: #2563eb; color: white; border: none; padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.save-btn:hover { background: #1d4ed8; }
+.save-btn:disabled { opacity: 0.5; pointer-events: none; }
+.cancel-btn { background: none; border: 1px solid #e0e0e0; color: #888; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.hidden { display: none; }
+
+.bar-chart-outer { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.bar-chart-inner { height: 250px; }
+.chart-wrap { position: relative; width: 100%; height: 210px; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.modal-overlay.hidden { display: none !important; pointer-events: none; }
+.modal { background: white; border-radius: 14px; width: 100%; max-width: 440px; max-height: 85vh; display: flex; flex-direction: column; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; border-radius: 14px 14px 0 0; }
+.modal-header h3 { font-size: 15px; font-weight: 600; }
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; padding: 2px 6px; border-radius: 6px; line-height: 1; }
+.modal-close:hover { background: #f5f5f5; color: #1a1a1a; }
+.modal-body { padding: 8px 20px 20px; overflow-y: auto; flex: 1; }
+.modal-back { background: none; border: none; color: #2563eb; font-size: 13px; cursor: pointer; padding: 8px 0 4px; display: flex; align-items: center; gap: 4px; }
+
+.cat-detail-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #f5f5f5; cursor: pointer; border-radius: 6px; }
+.cat-detail-row:hover { background: #f9f9f9; }
+.cat-detail-row:last-of-type { border-bottom: none; }
+.cat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.cat-detail-name { flex: 1; font-size: 13px; }
+.cat-detail-meta { font-size: 11px; color: #aaa; margin-right: 4px; white-space: nowrap; }
+.cat-detail-amount { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.cat-detail-arrow { color: #ccc; font-size: 13px; flex-shrink: 0; }
+.modal-total { display: flex; justify-content: space-between; padding: 12px 0 4px; border-top: 1px solid #e5e5e5; margin-top: 4px; font-weight: 600; font-size: 14px; }
+
+.payment-row { padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+.payment-row:last-child { border-bottom: none; }
+.payment-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.payment-ref { font-size: 13px; color: #1a1a1a; flex: 1; }
+.payment-amount { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.payment-date { font-size: 11px; color: #bbb; margin-top: 3px; }
+
+.cfg-section { margin-bottom: 24px; }
+.cfg-section-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+.cfg-cat-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+.cfg-cat-row:last-child { border-bottom: none; }
+.cfg-cat-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.cfg-cat-name { flex: 1; font-size: 13px; }
+.cfg-cat-edit { background: none; border: 1px solid #e5e5e5; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-size: 11px; color: #666; }
+.cfg-cat-edit:hover { background: #f5f5f5; }
+.cfg-cat-del { background: none; border: none; color: #ddd; cursor: pointer; font-size: 15px; padding: 0 4px; }
+.cfg-cat-del:hover { color: #dc2626; }
+.cfg-add-row { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; align-items: center; }
+.cfg-add-row input[type="text"] { flex: 1; font-size: 16px; padding: 7px 10px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; color: #1a1a1a; }
+.cfg-add-row input[type="color"] { width: 40px; height: 36px; padding: 2px 3px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer; }
+.cfg-edit-form { background: #f9f9f9; border-radius: 8px; padding: 10px; margin-top: 4px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.cfg-edit-form input[type="text"] { flex: 1; min-width: 100px; font-size: 16px; padding: 6px 10px; border: 1px solid #e0e0e0; border-radius: 6px; background: white; }
+.cfg-edit-form input[type="color"] { width: 36px; height: 32px; padding: 2px 3px; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; }
+.cfg-sync-note { font-size: 12px; color: #aaa; padding: 6px 0 2px; text-align: center; }
+.lang-selector { display: flex; gap: 8px; margin-bottom: 20px; }
+.lang-btn { flex: 1; padding: 8px; border: 1px solid #e5e5e5; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; color: #666; transition: all 0.15s; }
+.lang-btn:hover { background: #f5f5f5; }
+.lang-btn.active { border-color: #2563eb; color: #2563eb; font-weight: 600; background: #eff6ff; }
+
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f5f5f5;}
+.toggle-label{font-size:13px;color:#1a1a1a;}
+.toggle-sub{font-size:11px;color:#aaa;margin-top:2px;}
+.toggle-switch{position:relative;width:44px;height:26px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#e0e0e0;border-radius:26px;cursor:pointer;transition:0.2s;}
+.toggle-slider:before{content:"";position:absolute;width:20px;height:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.2s;}
+input:checked+.toggle-slider{background:#2563eb;}
+input:checked+.toggle-slider:before{transform:translateX(18px);}
+
+#toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a1a; color: white; padding: 10px 18px; border-radius: 10px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 280px; }
+#toast.show { opacity: 1; }
+#toast.error { background: #dc2626; }
+
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#f5f5f0;}
+.auth-card{background:white;border-radius:16px;border:1px solid #e5e5e5;padding:32px;width:100%;max-width:380px;}
+.auth-logo{font-size:26px;font-weight:700;margin-bottom:6px;}
+.auth-sub{font-size:14px;color:#888;margin-bottom:28px;}
+.auth-tabs{display:flex;margin-bottom:24px;border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;}
+.auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;cursor:pointer;background:white;border:none;color:#666;}
+.auth-tab.active{background:#2563eb;color:white;font-weight:500;}
+.auth-field{margin-bottom:14px;}
+.auth-field label{display:block;font-size:12px;font-weight:500;color:#666;margin-bottom:5px;}
+.auth-field input{width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:16px;color:#1a1a1a;background:white;}
+.auth-field input:focus{outline:none;border-color:#2563eb;}
+.auth-btn{width:100%;background:#2563eb;color:white;border:none;padding:11px;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;}
+.auth-btn:hover{background:#1d4ed8;}
+.auth-btn:disabled{opacity:0.6;pointer-events:none;}
+.auth-msg{padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:14px;}
+.auth-msg.error{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;}
+.auth-msg.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;}
+.logout-btn{background:none;border:1px solid #e5e5e5;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px;color:#888;}
+.logout-btn:hover{background:#f5f5f5;color:#dc2626;}
+.user-email-badge{font-size:11px;color:#aaa;padding:8px 0 14px;border-bottom:1px solid #f0f0f0;margin-bottom:16px;}
+</style>
+</head>
+<body>
+
+<div id="auth-screen" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">💰 Finances</div>
+    <div class="auth-sub">Gestiona les teves finances personals</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Registrar-se</button>
+    </div>
+    <div id="auth-msg" style="display:none" class="auth-msg"></div>
+    <div class="auth-field"><label>Email</label>
+      <input type="email" id="auth-email" placeholder="el-teu@email.com"></div>
+    <div class="auth-field"><label>Contrasenya</label>
+      <input type="password" id="auth-password" placeholder="••••••••"></div>
+    <div class="auth-field" id="confirm-field" style="display:none"><label>Confirmar contrasenya</label>
+      <input type="password" id="auth-confirm" placeholder="••••••••"></div>
+    <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Entrar</button>
+  </div>
+</div>
+
+<div id="config-banner" class="hidden"></div>
+
+<div id="app-screen" style="display:none">
+<header>
+  <div class="header-top">
+    <h1 id="app-title">Finances Personals 2026</h1>
+    <div class="header-btns">
+      <button class="sync-btn" id="sync-btn" onclick="loadAll()">Sincronitzar</button>
+      <button class="cfg-btn" onclick="openCfgModal()" title="Settings">&#9881;</button>
+      <button class="logout-btn" id="logout-btn" style="display:none" onclick="handleLogout()">&#x2192;</button>
+    </div>
+  </div>
+  <div class="month-nav" id="month-nav"></div>
+</header>
+
+<main id="main">
+  <div id="loader"><div class="spinner"></div><p id="loader-text">Connectant...</p></div>
+</main>
+
+<div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modal-title"></h3>
+      <button class="modal-close" onclick="closeModalDirect()">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="cfg-overlay" onclick="closeCfgOverlay(event)">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="modal-header">
+      <h3 id="cfg-title">Configuració</h3>
+      <button class="modal-close" onclick="document.getElementById('cfg-overlay').classList.add('hidden')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="cfg-body"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://grixipietdeagvfocych.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyaXhpcGlldGRlYWd2Zm9jeWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzkxMzgsImV4cCI6MjA5MTgxNTEzOH0.OMRkWdYPAxeo0Wbx7x9MlpLo_8iLI8qRb3bUSJVwzW8';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ---- TRANSLATIONS ----
+const TRANSLATIONS = {
+  ca: {
+    appTitle: 'Finances Personals 2026',
+    sync: 'Sincronitzar', syncing: 'Carregant...', synced: 'Dades sincronitzades',
+    connect: 'Connectar', bannerText: 'Enganxa la URL del teu Apps Script:',
+    loaderText: 'Connectant amb Google Sheets...',
+    configTitle: 'Configuració', language: 'Idioma',
+    categoriesDesp: 'Categories de despesses', categoriesIng: 'Categories d\'ingressos',
+    addCategory: 'Nova categoria...', add: 'Afegir', edit: 'Editar', save: 'Guardar',
+    cancel: 'Cancel·lar', delete: 'Eliminar',
+    confirmDelete: 'Eliminar la categoria "{{cat}}"?',
+    confirmDeleteEntry: 'Eliminar aquest registre?',
+    catExists: 'Aquesta categoria ja existeix',
+    catEmpty: 'Escriu un nom per la categoria',
+    catNameEmpty: 'El nom no pot estar buit',
+    catUpdated: 'Categoria actualitzada', catDeleted: 'Categoria eliminada', catAdded: 'Categoria afegida',
+    added: 'Afegit correctament', deleted: 'Eliminat',
+    invalidAmount: 'Import no vàlid', invalidUrl: 'URL no vàlida',
+    errorSaving: 'Error guardant: ', errorDeleting: 'Error: ', errorSyncCats: 'Error sincronitzant categories',
+    syncNote: 'Els canvis es sincronitzen entre tots els dispositius',
+    totalIncome: 'Total ingressos', totalExpenses: 'Total despesses', annualBalance: 'Balanç anual',
+    income: 'Ingressos', expenses: 'Despesses', balance: 'Balanç',
+    annualSummary: 'Resum anual', monthlyChart: 'Ingressos i despesses per mes',
+    distIncome: 'Distribució ingressos', distExpenses: 'Distribució despesses',
+    viewDetail: 'Veure detall', addEntry: '+ Afegir',
+    category: 'Categoria', amount: 'Import', reference: 'Referència',
+    noIncome: 'Sense ingressos', noExpenses: 'Sense despesses', noData: 'Sense dades',
+    noPayments: 'Sense pagaments', backToCategories: 'Tornar a categories',
+    despByCat: 'Despesses per categoria', ingByCat: 'Ingressos per categoria',
+    total: 'Total', totalOf: 'Total ',
+    reg: 'reg.',
+    tabSummary: 'Resum',
+    enableInv: 'Activar inversions', enableInvSub: 'Mostra la secció d\'inversions a cada mes',
+    investments: 'Inversions', categoriesInv: 'Categories d\'inversions', invested: 'Invertit', netBalance: 'Balanç net',
+    buy: 'Compra', sell: 'Venda', noInv: 'Sense inversions', totalInvested: 'Total invertit',
+    months: ['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'],
+    monthAbr: ['Gen','Feb','Març','Abr','Maig','Juny','Jul','Ago','Set','Oct','Nov','Des'],
+    defaultCatDesp: {
+      'Supermercat':'#3266ad','Restaurant':'#e07b39','Alcohol':'#c0392b',
+      'Transport':'#8e44ad','Salut i esport':'#27ae60','Roba o accesoris':'#e91e8c',
+      'Subscripcions':'#16a085','Farmàcia':'#2980b9','Allotjament':'#f39c12',
+      'Oci':'#9b59b6','Impostos':'#7f8c8d','Formació':'#1abc9c','Perruqueria':'#e74c3c'
+    },
+    defaultCatIng: {
+      'Nòmina':'#185FA5','Subsidi':'#BA7517','Beneficis':'#1D9E75'
+    }
+  },
+  es: {
+    appTitle: 'Finanzas Personales 2026',
+    sync: 'Sincronizar', syncing: 'Cargando...', synced: 'Datos sincronizados',
+    connect: 'Conectar', bannerText: 'Pega la URL de tu Apps Script:',
+    loaderText: 'Conectando con Google Sheets...',
+    configTitle: 'Configuración', language: 'Idioma',
+    categoriesDesp: 'Categorías de gastos', categoriesIng: 'Categorías de ingresos',
+    addCategory: 'Nueva categoría...', add: 'Añadir', edit: 'Editar', save: 'Guardar',
+    cancel: 'Cancelar', delete: 'Eliminar',
+    confirmDelete: 'Eliminar la categoría "{{cat}}"?',
+    confirmDeleteEntry: 'Eliminar este registro?',
+    catExists: 'Esta categoría ya existe',
+    catEmpty: 'Escribe un nombre para la categoría',
+    catNameEmpty: 'El nombre no puede estar vacío',
+    catUpdated: 'Categoría actualizada', catDeleted: 'Categoría eliminada', catAdded: 'Categoría añadida',
+    added: 'Añadido correctamente', deleted: 'Eliminado',
+    invalidAmount: 'Importe no válido', invalidUrl: 'URL no válida',
+    errorSaving: 'Error guardando: ', errorDeleting: 'Error: ', errorSyncCats: 'Error sincronizando categorías',
+    syncNote: 'Los cambios se sincronizan entre todos los dispositivos',
+    totalIncome: 'Total ingresos', totalExpenses: 'Total gastos', annualBalance: 'Balance anual',
+    income: 'Ingresos', expenses: 'Gastos', balance: 'Balance',
+    annualSummary: 'Resumen anual', monthlyChart: 'Ingresos y gastos por mes',
+    distIncome: 'Distribución ingresos', distExpenses: 'Distribución gastos',
+    viewDetail: 'Ver detalle', addEntry: '+ Añadir',
+    category: 'Categoría', amount: 'Importe', reference: 'Referencia',
+    noIncome: 'Sin ingresos', noExpenses: 'Sin gastos', noData: 'Sin datos',
+    noPayments: 'Sin pagos', backToCategories: 'Volver a categorías',
+    despByCat: 'Gastos por categoría', ingByCat: 'Ingresos por categoría',
+    total: 'Total', totalOf: 'Total ',
+    reg: 'reg.',
+    tabSummary: 'Resumen',
+    enableInv: 'Activar inversiones', enableInvSub: 'Muestra la sección de inversiones en cada mes',
+    investments: 'Inversiones', categoriesInv: 'Categorías de inversiones', invested: 'Invertido', netBalance: 'Balance neto',
+    buy: 'Compra', sell: 'Venta', noInv: 'Sin inversiones', totalInvested: 'Total invertido',
+    months: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+    monthAbr: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+    defaultCatDesp: {
+      'Supermercado':'#3266ad','Restaurante':'#e07b39','Alcohol':'#c0392b',
+      'Transporte':'#8e44ad','Salud y deporte':'#27ae60','Ropa o accesorios':'#e91e8c',
+      'Suscripciones':'#16a085','Farmacia':'#2980b9','Alojamiento':'#f39c12',
+      'Ocio':'#9b59b6','Impuestos':'#7f8c8d','Formación':'#1abc9c','Peluquería':'#e74c3c'
+    },
+    defaultCatIng: {
+      'Nómina':'#185FA5','Subsidio':'#BA7517','Beneficios':'#1D9E75'
+    }
+  },
+  en: {
+    appTitle: 'Personal Finances 2026',
+    sync: 'Sync', syncing: 'Loading...', synced: 'Data synced',
+    connect: 'Connect', bannerText: 'Paste your Apps Script URL:',
+    loaderText: 'Connecting to Google Sheets...',
+    configTitle: 'Settings', language: 'Language',
+    categoriesDesp: 'Expense categories', categoriesIng: 'Income categories',
+    addCategory: 'New category...', add: 'Add', edit: 'Edit', save: 'Save',
+    cancel: 'Cancel', delete: 'Delete',
+    confirmDelete: 'Delete category "{{cat}}"?',
+    confirmDeleteEntry: 'Delete this record?',
+    catExists: 'This category already exists',
+    catEmpty: 'Enter a name for the category',
+    catNameEmpty: 'Name cannot be empty',
+    catUpdated: 'Category updated', catDeleted: 'Category deleted', catAdded: 'Category added',
+    added: 'Added successfully', deleted: 'Deleted',
+    invalidAmount: 'Invalid amount', invalidUrl: 'Invalid URL',
+    errorSaving: 'Error saving: ', errorDeleting: 'Error: ', errorSyncCats: 'Error syncing categories',
+    syncNote: 'Changes sync across all your devices',
+    totalIncome: 'Total income', totalExpenses: 'Total expenses', annualBalance: 'Annual balance',
+    income: 'Income', expenses: 'Expenses', balance: 'Balance',
+    annualSummary: 'Annual summary', monthlyChart: 'Income and expenses by month',
+    distIncome: 'Income distribution', distExpenses: 'Expense distribution',
+    viewDetail: 'View detail', addEntry: '+ Add',
+    category: 'Category', amount: 'Amount', reference: 'Reference',
+    noIncome: 'No income', noExpenses: 'No expenses', noData: 'No data',
+    noPayments: 'No payments', backToCategories: 'Back to categories',
+    despByCat: 'Expenses by category', ingByCat: 'Income by category',
+    total: 'Total', totalOf: 'Total ',
+    reg: 'rec.',
+    tabSummary: 'Summary',
+    enableInv: 'Enable investments', enableInvSub: 'Show the investments section in each month',
+    investments: 'Investments', categoriesInv: 'Investment categories', invested: 'Invested', netBalance: 'Net balance',
+    buy: 'Buy', sell: 'Sell', noInv: 'No investments', totalInvested: 'Total invested',
+    months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+    monthAbr: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    defaultCatDesp: {
+      'Supermarket':'#3266ad','Restaurant':'#e07b39','Alcohol':'#c0392b',
+      'Transport':'#8e44ad','Health & sport':'#27ae60','Clothes & accessories':'#e91e8c',
+      'Subscriptions':'#16a085','Pharmacy':'#2980b9','Accommodation':'#f39c12',
+      'Leisure':'#9b59b6','Taxes':'#7f8c8d','Education':'#1abc9c','Haircut':'#e74c3c'
+    },
+    defaultCatIng: {
+      'Salary':'#185FA5','Benefit':'#BA7517','Profits':'#1D9E75'
+    }
+  }
+};
+
+
+// ---- CATEGORY TRANSLATION MAP ----
+// Maps category names across all 3 languages: [ca, es, en]
+const CAT_TRANS = [
+  ['Supermercat','Supermercado','Supermarket'],
+  ['Restaurant','Restaurante','Restaurant'],
+  ['Alcohol','Alcohol','Alcohol'],
+  ['Transport','Transporte','Transport'],
+  ['Salut i esport','Salud y deporte','Health & sport'],
+  ['Roba o accesoris','Ropa o accesorios','Clothes & accessories'],
+  ['Subscripcions','Suscripciones','Subscriptions'],
+  ['Farmàcia','Farmacia','Pharmacy'],
+  ['Allotjament','Alojamiento','Accommodation'],
+  ['Entrades','Entradas','Tickets'],
+  ['Impostos','Impuestos','Taxes'],
+  ['Formació','Formación','Education'],
+  ['Perruqueria','Peluquería','Haircut'],
+  ['Tabac','Tabaco','Tobacco'],
+  ['Altres','Otros','Others'],
+];
+const ING_TRANS = [
+  ['Worldpackers','Worldpackers','Worldpackers'],
+  ['Família','Familia','Family'],
+  ['Atur','Paro','Unemployment'],
+  ['UGC','UGC','UGC'],
+  ['YouTube','YouTube','YouTube'],
+  ['Altres','Otros','Others'],
+];
+const LANG_IDX = {ca:0, es:1, en:2};
+
+function translateCat(catName, fromLang, toLang) {
+  if (fromLang === toLang) return catName;
+  const fromIdx = LANG_IDX[fromLang];
+  const toIdx = LANG_IDX[toLang];
+  // Check despeses
+  for (const row of CAT_TRANS) {
+    if (row[fromIdx] === catName) return row[toIdx];
+  }
+  // Check ingressos
+  for (const row of ING_TRANS) {
+    if (row[fromIdx] === catName) return row[toIdx];
+  }
+  return catName; // untranslated, keep original
+}
+
+function translateColorMap(colorMap, fromLang, toLang) {
+  if (fromLang === toLang) return colorMap;
+  const newMap = {};
+  Object.entries(colorMap).forEach(([cat, color]) => {
+    const translated = translateCat(cat, fromLang, toLang);
+    newMap[translated] = color;
+  });
+  return newMap;
+}
+
+function translateAllData(fromLang, toLang) {
+  if (fromLang === toLang) return;
+  ALL_MONTHS.forEach(m => {
+    if (!appData[m]) return;
+    appData[m].desp.forEach(r => { r.cat = translateCat(r.cat, fromLang, toLang); });
+    appData[m].ing.forEach(r => { r.cat = translateCat(r.cat, fromLang, toLang); });
+  });
+}
+
+const MONTH_KEYS = ['Gen','Feb','Març','Abril','Maig','Juny','Jul','Ago','Set','Oct','Nov','Des'];
+const ALL_MONTHS = ['Gen2026','Feb2026','Març2026','Abril2026','Maig2026','Juny2026',
+                    'Jul2026','Ago2026','Set2026','Oct2026','Nov2026','Des2026'];
+
+function getMonthsForYear(year) {
+  return MONTH_KEYS.map(m => m+year);
+}
+function getActiveMonths() {
+  return getMonthsForYear(activeYear);
+}
+
+let currentLang = localStorage.getItem('appLang') || 'ca';
+let activeYear = new Date().getFullYear();
+let T = TRANSLATIONS[currentLang];
+let CAT_COLORS = Object.assign({}, T.defaultCatDesp);
+let ING_COLORS = Object.assign({}, T.defaultCatIng);
+
+let INV_COLORS={'ETF':'#0f6e56','Accions':'#185FA5','Cryptos':'#BA7517'};
+function getColorMap(t){return t==='desp'?CAT_COLORS:t==='ing'?ING_COLORS:INV_COLORS;}
+
+// Static 2025 data embedded from Excel
+const STATIC_DATA_2025 = {};
+
+let modalState = null;
+let currentUser = null;
+let authMode = 'login';
+
+function t(key, vars) {
+  let s = T[key] || key;
+  if (vars) Object.entries(vars).forEach(([k,v]) => { s = s.replace('{{'+k+'}}', v); });
+  return s;
+}
+function getMonthLabel(idx) { return T.months[idx]; }
+function getAllLabels() {
+  const labels = { 'Resum': T.tabSummary };
+  getActiveMonths().forEach((m,i) => { labels[m] = T.monthAbr ? T.monthAbr[i] : T.months[i].substring(0,3); });
+  return labels;
+}
+
+function fmt(n) { return (parseFloat(n)||0).toFixed(2)+'€'; }
+function fmtSign(n,isDesp) { return (isDesp?'-':'+')+fmt(n); }
+function sum(arr) { return (arr||[]).reduce((a,b)=>a+(parseFloat(b.amount)||0),0); }
+function getByCat(arr) {
+  const m={};
+  (arr||[]).forEach(r=>{m[r.cat]=(m[r.cat]||0)+r.amount;});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+function getCountByCat(arr) {
+  const m={};
+  (arr||[]).forEach(r=>{
+    if(!m[r.cat])m[r.cat]={total:0,count:0,items:[]};
+    m[r.cat].total+=r.amount;m[r.cat].count++;m[r.cat].items.push(r);
+  });
+  return Object.entries(m).sort((a,b)=>b[1].total-a[1].total);
+}
+function collectAllForType(months,type) {
+  const all=[];
+  months.forEach(m=>(appData[m]&&appData[m][type]||[]).forEach(r=>all.push(r)));
+  return all;
+}
+function destroyCharts(){Object.values(charts).forEach(c=>c.destroy());charts={};}
+function toggleForm(id){document.getElementById(id).classList.toggle('hidden');}
+function todayStr(){
+  const d=new Date();
+  return d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getFullYear();
+}
+
+function normalizeDate(raw) {
+  if (!raw) return '';
+  // Already in DD/MM/YYYY format
+  if (typeof raw === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(raw)) return raw;
+  // Try parsing as a date object or string
+  const d = new Date(raw);
+  if (!isNaN(d.getTime())) {
+    return d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getFullYear();
+  }
+  // Return first 10 chars as fallback
+  return String(raw).substring(0,10);
+}
+
+function setLanguage(lang, reload=true) {
+  currentLang = lang;
+  T = TRANSLATIONS[lang];
+  localStorage.setItem('appLang', lang);
+  if (reload) {
+    applyStaticTranslations();
+    buildNav();
+    render();
+  }
+}
+
+function applyStaticTranslations() {
+  document.getElementById('app-title').textContent = T.appTitle;
+  document.getElementById('sync-btn').textContent = T.sync;
+  document.getElementById('banner-text').textContent = T.bannerText;
+  document.getElementById('banner-btn').textContent = T.connect;
+  document.getElementById('loader-text').textContent = T.loaderText;
+  document.getElementById('cfg-title').textContent = T.configTitle;
+  document.documentElement.lang = currentLang;
+}
+
+window.onload = async () => {
+  T = TRANSLATIONS[currentLang];
+  const now = new Date();
+  activeYear = now.getFullYear();
+  activeTab = MONTH_KEYS[now.getMonth()] + activeYear;
+  applyStaticTranslations();
+  buildNav();
+  const { data:{session} } = await sb.auth.getSession();
+  if (session) { currentUser=session.user; showApp(); }
+  // else: auth-screen already visible by default
+  sb.auth.onAuthStateChange((_,session)=>{ if(session&&session.user&&!currentUser){currentUser=session.user;showApp();} });
+  document.getElementById('auth-email').addEventListener('keydown',e=>{if(e.key==='Enter')handleAuth();});
+  document.getElementById('auth-password').addEventListener('keydown',e=>{if(e.key==='Enter')handleAuth();});
+};
+
+function showApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('logout-btn').style.display='';
+  loadAll();
+}
+
+function switchAuthTab(mode){
+  authMode=mode;
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&mode==='login')||(i===1&&mode==='register')));
+  document.getElementById('confirm-field').style.display=mode==='register'?'':'none';
+  document.getElementById('auth-btn').textContent=mode==='login'?'Entrar':'Crear compte';
+  document.getElementById('auth-msg').style.display='none';
+}
+
+async function handleAuth(){
+  const email=document.getElementById('auth-email').value.trim();
+  const pass=document.getElementById('auth-password').value;
+  const btn=document.getElementById('auth-btn');
+  document.getElementById('auth-msg').style.display='none';
+  if(!email||!pass){showAuthMsg('Omple tots els camps',true);return;}
+  if(pass.length<6){showAuthMsg('Mínim 6 caràcters',true);return;}
+  if(authMode==='register'){
+    const conf=document.getElementById('auth-confirm').value;
+    if(pass!==conf){showAuthMsg('Les contrasenyes no coincideixen',true);return;}
+  }
+  btn.disabled=true;
+  btn.textContent=authMode==='login'?'Entrant...':'Creant compte...';
+  try{
+    let r;
+    if(authMode==='login'){
+      r=await sb.auth.signInWithPassword({email,password:pass});
+      if(r.error)throw r.error;
+      if(r.data&&r.data.session){
+        currentUser=r.data.session.user;
+        showApp();
+      } else {
+        throw new Error("No s'ha pogut iniciar sessió. Torna-ho a provar.");
+      }
+    } else {
+      r=await sb.auth.signUp({email,password:pass});
+      if(r.error)throw r.error;
+      if(r.data&&r.data.session){
+        // Auto-confirmed
+        currentUser=r.data.session.user;
+        showApp();
+      } else {
+        showAuthMsg('Compte creat! Ja pots entrar amb el teu email i contrasenya.',false);
+        btn.disabled=false;
+        btn.textContent='Crear compte';
+        switchAuthTab('login');
+      }
+    }
+  }catch(err){
+    showAuthMsg(err.message||'Error desconegut',true);
+    btn.disabled=false;
+    btn.textContent=authMode==='login'?'Entrar':'Crear compte';
+  }
+}
+
+function showAuthMsg(msg,isError){
+  const el=document.getElementById('auth-msg');
+  el.textContent=msg;el.className='auth-msg '+(isError?'error':'success');el.style.display='';
+}
+
+async function handleLogout(){
+  await sb.auth.signOut();currentUser=null;appData={};
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('app-screen').style.display='none';
+}
+
+async function loadAll(){
+  if(!currentUser)return;
+  const btn=document.getElementById('sync-btn');
+  btn.disabled=true;btn.textContent=T.syncing;
+  try{
+    console.log('loadAll: fetching categories...');
+    const{data:cats, error:catsErr}=await sb.from('user_categories').select('*').eq('user_id',currentUser.id).maybeSingle();
+    console.log('loadAll: cats done', cats, catsErr);
+    if(cats){
+      if(cats.desp_colors&&Object.keys(cats.desp_colors).length>0) CAT_COLORS=translateColorMap(cats.desp_colors,'ca',currentLang);
+      if(cats.ing_colors&&Object.keys(cats.ing_colors).length>0) ING_COLORS=translateColorMap(cats.ing_colors,'ca',currentLang);
+      if(cats.inv_colors&&Object.keys(cats.inv_colors).length>0) INV_COLORS=Object.assign({},cats.inv_colors);
+    }
+    console.log('loadAll: fetching entries...');
+    const{data:entries,error}=await sb.from('entries').select('*').eq('user_id',currentUser.id);
+    console.log('loadAll: entries done', entries?.length, error);
+    if(error)throw error;
+    appData={};
+    getMonthsForYear(activeYear).forEach(m=>{appData[m]={ing:[],desp:[],inv:[]};});
+    (entries||[]).forEach(e=>{
+      if(!appData[e.month])appData[e.month]={ing:[],desp:[],inv:[]};
+      if(e.type==='inv'){
+        const p=(e.ref||'').split('|');
+        appData[e.month].inv.push({id:e.id,cat:e.cat,amount:parseFloat(e.amount),opType:p[0]==='sell'?'sell':'buy',ref:p.slice(1).join('|'),date:e.date||''});
+      }else{
+        const cat=translateCat(e.cat,'ca',currentLang);
+        appData[e.month][e.type].push({id:e.id,cat,amount:parseFloat(e.amount),ref:e.ref||'',date:e.date||''});
+      }
+    });
+
+    render();showToast(T.synced);
+  }catch(err){
+    showToast(T.errorDeleting+err.message,true);
+    getMonthsForYear(activeYear).forEach(m=>{if(!appData[m])appData[m]={ing:[],desp:[],inv:[]};});
+    render();
+  }finally{btn.disabled=false;btn.textContent=T.sync;}
+}
+
+async function addEntry(sheet,type){
+  const cat=document.getElementById(type+'-cat').value;
+  const amt=parseFloat(document.getElementById(type+'-amt').value);
+  const ref=document.getElementById(type+'-ref').value;
+  const btn=document.getElementById(type+'-save-btn');
+  if(!amt||isNaN(amt)||amt<=0){showToast(T.invalidAmount,true);return;}
+  btn.disabled=true;btn.textContent=T.save;
+  const date=todayStr();
+  const catCA=translateCat(cat,currentLang,'ca');
+  try{
+    const{data,error}=await sb.from('entries').insert({user_id:currentUser.id,month:sheet,type,cat:catCA,amount:amt,ref,date}).select().single();
+    if(error)throw error;
+    if(!appData[sheet])appData[sheet]={ing:[],desp:[],inv:[]};
+    appData[sheet][type].push({id:data.id,cat,amount:amt,ref,date});
+    document.getElementById(type+'-amt').value='';
+    document.getElementById(type+'-ref').value='';
+    render();showToast(T.added);
+  }catch(err){showToast(T.errorSaving+err.message,true);}
+  finally{btn.disabled=false;btn.textContent=T.save;}
+}
+
+async function deleteEntry(sheet,type,idx){
+  if(!confirm(T.confirmDeleteEntry))return;
+  const entry=appData[sheet][type][idx];
+  if(!entry||!entry.id)return;
+  try{
+    const{error}=await sb.from('entries').delete().eq('id',entry.id);
+    if(error)throw error;
+    appData[sheet][type].splice(idx,1);render();showToast(T.deleted);
+  }catch(err){showToast(T.errorDeleting+err.message,true);}
+}
+
+async function addInvestment(sheet){
+  const cat=document.getElementById('inv-cat-'+sheet).value;
+  const opType=document.getElementById('inv-op-'+sheet).value;
+  const amt=parseFloat(document.getElementById('inv-amt-'+sheet).value);
+  const ref=document.getElementById('inv-ref-'+sheet).value;
+  const btn=document.getElementById('inv-save-btn-'+sheet);
+  if(!amt||isNaN(amt)||amt<=0){showToast(T.invalidAmount,true);return;}
+  btn.disabled=true;btn.textContent=T.save;
+  const date=todayStr();
+  try{
+    const{data,error}=await sb.from('entries').insert({user_id:currentUser.id,month:sheet,type:'inv',cat,amount:amt,ref:opType+'|'+ref,date}).select().single();
+    if(error)throw error;
+    if(!appData[sheet])appData[sheet]={ing:[],desp:[],inv:[]};
+    appData[sheet].inv.push({id:data.id,cat,amount:amt,opType,ref,date});
+    document.getElementById('inv-amt-'+sheet).value='';
+    document.getElementById('inv-ref-'+sheet).value='';
+    render();showToast(T.added);
+  }catch(err){showToast(T.errorSaving+err.message,true);}
+  finally{btn.disabled=false;btn.textContent=T.save;}
+}
+
+async function deleteInvestment(sheet,idx){
+  if(!confirm(T.confirmDeleteEntry))return;
+  const entry=(appData[sheet]?.inv||[])[idx];
+  if(!entry||!entry.id)return;
+  try{
+    const{error}=await sb.from('entries').delete().eq('id',entry.id);
+    if(error)throw error;
+    appData[sheet].inv.splice(idx,1);render();showToast(T.deleted);
+  }catch(err){showToast(T.errorDeleting+err.message,true);}
+}
+
+async function syncCategories(){
+  if(!currentUser)return;
+  try{
+    const despCA=translateColorMap(CAT_COLORS,currentLang,'ca');
+    const ingCA=translateColorMap(ING_COLORS,currentLang,'ca');
+    await sb.from('user_categories').upsert({
+      user_id:currentUser.id,desp_colors:despCA,ing_colors:ingCA,inv_colors:INV_COLORS,updated_at:new Date().toISOString()
+    },{onConflict:'user_id'});
+  }catch(err){showToast(T.errorSyncCats,true);}
+}
+</script>
+
+</div><!-- end app-screen -->
+<div id="toast"></div>
+</body>
+</html>
