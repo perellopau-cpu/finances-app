@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Finances Personals 2026</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow-x: hidden; max-width: 100vw; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; min-height: 100vh; }
+
+#config-banner { background: #fff3cd; border-bottom: 1px solid #ffc107; padding: 10px 20px; font-size: 13px; color: #856404; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+#config-banner input { flex: 1; min-width: 200px; padding: 6px 10px; border: 1px solid #ffc107; border-radius: 6px; font-size: 16px; background: white; }
+#config-banner button { background: #ffc107; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: #1a1a1a; white-space: nowrap; }
+#config-banner.hidden { display: none; }
+
+header { background: white; border-bottom: 1px solid #e5e5e5; padding: 0 16px; position: sticky; top: 0; z-index: 100; width: 100%; }
+.header-top { display: flex; align-items: center; justify-content: space-between; padding: 12px 0 0; gap: 8px; min-width: 0; }
+h1 { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+.header-btns { display: flex; gap: 6px; }
+.sync-btn { background: none; border: 1px solid #e5e5e5; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #666; }
+.sync-btn:hover { background: #f5f5f5; }
+.sync-btn:disabled { opacity: 0.5; pointer-events: none; }
+.cfg-btn { background: none; border: 1px solid #e5e5e5; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 16px; color: #666; }
+.cfg-btn:hover { background: #f5f5f5; }
+
+.month-nav { display: flex; align-items: center; gap: 8px; padding: 8px 0; flex-wrap: wrap; width: 100%; }
+.month-nav select { font-size: 16px; padding: 5px 8px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; color: #1a1a1a; cursor: pointer; min-width: 0; flex-shrink: 1; }
+.month-nav .nav-summary-btn { padding: 5px 12px; font-size: 13px; cursor: pointer; border: 1px solid #e0e0e0; border-radius: 8px; background: white; color: #666; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+.month-nav .nav-summary-btn:hover, .month-nav .nav-summary-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
+
+main { max-width: 960px; margin: 0 auto; padding: 16px; width: 100%; }
+#loader { text-align: center; padding: 60px 20px; color: #888; }
+.spinner { width: 32px; height: 32px; border: 3px solid #e5e5e5; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.metric { background: white; border-radius: 10px; padding: 12px 10px; border: 1px solid #e5e5e5; min-width: 0; }
+.metric-label { font-size: 11px; color: #888; margin-bottom: 4px; line-height: 1.3; }
+.metric-value { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 600px) { 
+  .metric-grid { grid-template-columns: repeat(2, 1fr) !important; } 
+  .metric-value { font-size: 14px; } 
+  .metric-label { font-size: 10px; }
+}
+.green { color: #16a34a; } .red { color: #dc2626; } .blue { color: #2563eb; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; min-width: 0; }
+@media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } .metric-grid { gap: 8px; } }
+.two-col > * { min-width: 0; overflow: hidden; }
+.panel { background: white; border-radius: 10px; border: 1px solid #e5e5e5; padding: 16px; min-width: 0; max-width: 100%; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.panel-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; }
+
+table { width: 100%; font-size: 13px; border-collapse: collapse; }
+th { text-align: left; color: #888; font-weight: 400; padding: 6px 6px; border-bottom: 1px solid #f0f0f0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+td { padding: 6px 6px; border-bottom: 1px solid #f5f5f5; vertical-align: top; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+td.amount { text-align: right; font-weight: 600; font-size: 13px; white-space: nowrap; vertical-align: middle; }
+td.ref-col { color: #1a1a1a; font-size: 12px; max-width: 160px; }
+.ref-text { display: block; color: #1a1a1a; }
+.ref-date { display: block; font-size: 11px; color: #bbb; margin-top: 2px; }
+.cat-pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; vertical-align: middle; }
+.del-btn { background: none; border: none; color: #ddd; cursor: pointer; font-size: 13px; padding: 0 4px; transition: color 0.1s; }
+tr:hover .del-btn { color: #bbb; }
+.del-btn:hover { color: #dc2626 !important; }
+
+.add-btn { background: none; border: 1px solid #e5e5e5; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #444; }
+.add-btn:hover { background: #f9f9f9; }
+.detail-btn { background: none; border: 1px solid #e5e5e5; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #666; white-space: nowrap; }
+.detail-btn:hover { background: #f5f5f5; }
+
+.form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+.form-row select, .form-row input { flex: 1; min-width: 90px; font-size: 16px; padding: 7px 10px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; color: #1a1a1a; }
+.save-btn { background: #2563eb; color: white; border: none; padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.save-btn:hover { background: #1d4ed8; }
+.save-btn:disabled { opacity: 0.5; pointer-events: none; }
+.cancel-btn { background: none; border: 1px solid #e0e0e0; color: #888; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.hidden { display: none; }
+
+.bar-chart-outer { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.bar-chart-inner { height: 250px; }
+.chart-wrap { position: relative; width: 100%; height: 210px; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.modal-overlay.hidden { display: none; }
+.modal { background: white; border-radius: 14px; width: 100%; max-width: 440px; max-height: 85vh; display: flex; flex-direction: column; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; border-radius: 14px 14px 0 0; }
+.modal-header h3 { font-size: 15px; font-weight: 600; }
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; padding: 2px 6px; border-radius: 6px; line-height: 1; }
+.modal-close:hover { background: #f5f5f5; color: #1a1a1a; }
+.modal-body { padding: 8px 20px 20px; overflow-y: auto; flex: 1; }
+.modal-back { background: none; border: none; color: #2563eb; font-size: 13px; cursor: pointer; padding: 8px 0 4px; display: flex; align-items: center; gap: 4px; }
+
+.cat-detail-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #f5f5f5; cursor: pointer; border-radius: 6px; }
+.cat-detail-row:hover { background: #f9f9f9; }
+.cat-detail-row:last-of-type { border-bottom: none; }
+.cat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.cat-detail-name { flex: 1; font-size: 13px; }
+.cat-detail-meta { font-size: 11px; color: #aaa; margin-right: 4px; white-space: nowrap; }
+.cat-detail-amount { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.cat-detail-arrow { color: #ccc; font-size: 13px; flex-shrink: 0; }
+.modal-total { display: flex; justify-content: space-between; padding: 12px 0 4px; border-top: 1px solid #e5e5e5; margin-top: 4px; font-weight: 600; font-size: 14px; }
+
+.payment-row { padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+.payment-row:last-child { border-bottom: none; }
+.payment-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.payment-ref { font-size: 13px; color: #1a1a1a; flex: 1; }
+.payment-amount { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.payment-date { font-size: 11px; color: #bbb; margin-top: 3px; }
+
+.cfg-section { margin-bottom: 24px; }
+.cfg-section-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+.cfg-cat-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+.cfg-cat-row:last-child { border-bottom: none; }
+.cfg-cat-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.cfg-cat-name { flex: 1; font-size: 13px; }
+.cfg-cat-edit { background: none; border: 1px solid #e5e5e5; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-size: 11px; color: #666; }
+.cfg-cat-edit:hover { background: #f5f5f5; }
+.cfg-cat-del { background: none; border: none; color: #ddd; cursor: pointer; font-size: 15px; padding: 0 4px; }
+.cfg-cat-del:hover { color: #dc2626; }
+.cfg-add-row { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; align-items: center; }
+.cfg-add-row input[type="text"] { flex: 1; font-size: 16px; padding: 7px 10px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; color: #1a1a1a; }
+.cfg-add-row input[type="color"] { width: 40px; height: 36px; padding: 2px 3px; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer; }
+.cfg-edit-form { background: #f9f9f9; border-radius: 8px; padding: 10px; margin-top: 4px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.cfg-edit-form input[type="text"] { flex: 1; min-width: 100px; font-size: 16px; padding: 6px 10px; border: 1px solid #e0e0e0; border-radius: 6px; background: white; }
+.cfg-edit-form input[type="color"] { width: 36px; height: 32px; padding: 2px 3px; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; }
+.cfg-sync-note { font-size: 12px; color: #aaa; padding: 6px 0 2px; text-align: center; }
+.lang-selector { display: flex; gap: 8px; margin-bottom: 20px; }
+.lang-btn { flex: 1; padding: 8px; border: 1px solid #e5e5e5; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; color: #666; transition: all 0.15s; }
+.lang-btn:hover { background: #f5f5f5; }
+.lang-btn.active { border-color: #2563eb; color: #2563eb; font-weight: 600; background: #eff6ff; }
+
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f5f5f5;}
+.toggle-label{font-size:13px;color:#1a1a1a;}
+.toggle-sub{font-size:11px;color:#aaa;margin-top:2px;}
+.toggle-switch{position:relative;width:44px;height:26px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#e0e0e0;border-radius:26px;cursor:pointer;transition:0.2s;}
+.toggle-slider:before{content:"";position:absolute;width:20px;height:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.2s;}
+input:checked+.toggle-slider{background:#2563eb;}
+input:checked+.toggle-slider:before{transform:translateX(18px);}
+
+#toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a1a; color: white; padding: 10px 18px; border-radius: 10px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 280px; }
+#toast.show { opacity: 1; }
+#toast.error { background: #dc2626; }
+
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#f5f5f0;}
+.auth-card{background:white;border-radius:16px;border:1px solid #e5e5e5;padding:32px;width:100%;max-width:380px;}
+.auth-logo{font-size:26px;font-weight:700;margin-bottom:6px;}
+.auth-sub{font-size:14px;color:#888;margin-bottom:28px;}
+.auth-tabs{display:flex;margin-bottom:24px;border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;}
+.auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;cursor:pointer;background:white;border:none;color:#666;}
+.auth-tab.active{background:#2563eb;color:white;font-weight:500;}
+.auth-field{margin-bottom:14px;}
+.auth-field label{display:block;font-size:12px;font-weight:500;color:#666;margin-bottom:5px;}
+.auth-field input{width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:16px;color:#1a1a1a;background:white;}
+.auth-field input:focus{outline:none;border-color:#2563eb;}
+.auth-btn{width:100%;background:#2563eb;color:white;border:none;padding:11px;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;}
+.auth-btn:hover{background:#1d4ed8;}
+.auth-btn:disabled{opacity:0.6;pointer-events:none;}
+.auth-msg{padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:14px;}
+.auth-msg.error{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;}
+.auth-msg.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;}
+.logout-btn{background:none;border:1px solid #e5e5e5;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px;color:#888;}
+.logout-btn:hover{background:#f5f5f5;color:#dc2626;}
+.user-email-badge{font-size:11px;color:#aaa;padding:8px 0 14px;border-bottom:1px solid #f0f0f0;margin-bottom:16px;}
+</style>
+</head>
+<body>
+
+<div id="auth-screen" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">💰 Finances</div>
+    <div class="auth-sub">Gestiona les teves finances personals</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Registrar-se</button>
+    </div>
+    <div id="auth-msg" style="display:none" class="auth-msg"></div>
+    <div class="auth-field"><label>Email</label>
+      <input type="email" id="auth-email" placeholder="el-teu@email.com"></div>
+    <div class="auth-field"><label>Contrasenya</label>
+      <input type="password" id="auth-password" placeholder="••••••••"></div>
+    <div class="auth-field" id="confirm-field" style="display:none"><label>Confirmar contrasenya</label>
+      <input type="password" id="auth-confirm" placeholder="••••••••"></div>
+    <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Entrar</button>
+  </div>
+</div>
+
+<div id="config-banner" class="hidden"></div>
+
+<div id="app-screen" style="display:none">
+<header>
+  <div class="header-top">
+    <h1 id="app-title">Finances Personals 2026</h1>
+    <div class="header-btns">
+      <button class="sync-btn" id="sync-btn" onclick="loadAll()">Sincronitzar</button>
+      <button class="cfg-btn" onclick="openCfgModal()" title="Settings">&#9881;</button>
+      <button class="logout-btn" id="logout-btn" style="display:none" onclick="handleLogout()">&#x2192;</button>
+    </div>
+  </div>
+  <div class="month-nav" id="month-nav"></div>
+</header>
+
+<main id="main">
+  <div id="loader"><div class="spinner"></div><p id="loader-text">Connectant...</p></div>
+</main>
+
+</div><!-- end app-screen -->
+<div id="toast"></div>
+
+<div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modal-title"></h3>
+      <button class="modal-close" onclick="closeModalDirect()">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="cfg-overlay" onclick="closeCfgOverlay(event)">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="modal-header">
+      <h3 id="cfg-title">Configuració</h3>
+      <button class="modal-close" onclick="document.getElementById('cfg-overlay').classList.add('hidden')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="cfg-body"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://grixipietdeagvfocych.supabase.co';
+const SUPABASE_KEY='sb_publishable_8XOMYmb59A6azNf5nrZwIA_saLNSur-';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ---- TRANSLATIONS ----
+const TRANSLATIONS = {
+  ca: {
+    appTitle: 'Finances Personals 2026',
+    sync: 'Sincronitzar', syncing: 'Carregant...', synced: 'Dades sincronitzades',
+    connect: 'Connectar', bannerText: 'Enganxa la URL del teu Apps Script:',
+    loaderText: 'Connectant amb Google Sheets...',
+    configTitle: 'Configuració', language: 'Idioma',
+    categoriesDesp: 'Categories de despesses', categoriesIng: 'Categories d\'ingressos',
+    addCategory: 'Nova categoria...', add: 'Afegir', edit: 'Editar', save: 'Guardar',
+    cancel: 'Cancel·lar', delete: 'Eliminar',
+    confirmDelete: 'Eliminar la categoria "{{cat}}"?',
+    confirmDeleteEntry: 'Eliminar aquest registre?',
+    catExists: 'Aquesta categoria ja existeix',
+    catEmpty: 'Escriu un nom per la categoria',
+    catNameEmpty: 'El nom no pot estar buit',
+    catUpdated: 'Categoria actualitzada', catDeleted: 'Categoria eliminada', catAdded: 'Categoria afegida',
+    added: 'Afegit correctament', deleted: 'Eliminat',
+    invalidAmount: 'Import no vàlid', invalidUrl: 'URL no vàlida',
+    errorSaving: 'Error guardant: ', errorDeleting: 'Error: ', errorSyncCats: 'Error sincronitzant categories',
+    syncNote: 'Els canvis es sincronitzen entre tots els dispositius',
+    totalIncome: 'Total ingressos', totalExpenses: 'Total despesses', annualBalance: 'Balanç anual',
+    income: 'Ingressos', expenses: 'Despesses', balance: 'Balanç',
+    annualSummary: 'Resum anual', monthlyChart: 'Ingressos i despesses per mes',
+    distIncome: 'Distribució ingressos', distExpenses: 'Distribució despesses',
+    viewDetail: 'Veure detall', addEntry: '+ Afegir',
+    category: 'Categoria', amount: 'Import', reference: 'Referència',
+    noIncome: 'Sense ingressos', noExpenses: 'Sense despesses', noData: 'Sense dades',
+    noPayments: 'Sense pagaments', backToCategories: 'Tornar a categories',
+    despByCat: 'Despesses per categoria', ingByCat: 'Ingressos per categoria',
+    total: 'Total', totalOf: 'Total ',
+    reg: 'reg.',
+    tabSummary: 'Resum',
+    enableInv: 'Activar inversions', enableInvSub: 'Mostra la secció d\'inversions a cada mes',
+    investments: 'Inversions', categoriesInv: 'Categories d\'inversions', invested: 'Invertit', netBalance: 'Balanç net',
+    buy: 'Compra', sell: 'Venda', noInv: 'Sense inversions', totalInvested: 'Total invertit',
+    months: ['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'],
+    monthAbr: ['Gen','Feb','Març','Abr','Maig','Juny','Jul','Ago','Set','Oct','Nov','Des'],
+    defaultCatDesp: {
+      'Supermercat':'#3266ad','Restaurant':'#e07b39','Alcohol':'#c0392b',
+      'Transport':'#8e44ad','Salut i esport':'#27ae60','Roba o accesoris':'#e91e8c',
+      'Subscripcions':'#16a085','Farmàcia':'#2980b9','Allotjament':'#f39c12',
+      'Oci':'#9b59b6','Impostos':'#7f8c8d','Formació':'#1abc9c','Perruqueria':'#e74c3c'
+    },
+    defaultCatIng: {
+      'Nòmina':'#185FA5','Subsidi':'#BA7517','Beneficis':'#1D9E75'
+    }
+  },
+  es: {
+    appTitle: 'Finanzas Personales 2026',
+    sync: 'Sincronizar', syncing: 'Cargando...', synced: 'Datos sincronizados',
+    connect: 'Conectar', bannerText: 'Pega la URL de tu Apps Script:',
+    loaderText: 'Conectando con Google Sheets...',
+    configTitle: 'Configuración', language: 'Idioma',
+    categoriesDesp: 'Categorías de gastos', categoriesIng: 'Categorías de ingresos',
+    addCategory: 'Nueva categoría...', add: 'Añadir', edit: 'Editar', save: 'Guardar',
+    cancel: 'Cancelar', delete: 'Eliminar',
+    confirmDelete: 'Eliminar la categoría "{{cat}}"?',
+    confirmDeleteEntry: 'Eliminar este registro?',
+    catExists: 'Esta categoría ya existe',
+    catEmpty: 'Escribe un nombre para la categoría',
+    catNameEmpty: 'El nombre no puede estar vacío',
+    catUpdated: 'Categoría actualizada', catDeleted: 'Categoría eliminada', catAdded: 'Categoría añadida',
+    added: 'Añadido correctamente', deleted: 'Eliminado',
+    invalidAmount: 'Importe no válido', invalidUrl: 'URL no válida',
+    errorSaving: 'Error guardando: ', errorDeleting: 'Error: ', errorSyncCats: 'Error sincronizando categorías',
+    syncNote: 'Los cambios se sincronizan entre todos los dispositivos',
+    totalIncome: 'Total ingresos', totalExpenses: 'Total gastos', annualBalance: 'Balance anual',
+    income: 'Ingresos', expenses: 'Gastos', balance: 'Balance',
+    annualSummary: 'Resumen anual', monthlyChart: 'Ingresos y gastos por mes',
+    distIncome: 'Distribución ingresos', distExpenses: 'Distribución gastos',
+    viewDetail: 'Ver detalle', addEntry: '+ Añadir',
+    category: 'Categoría', amount: 'Importe', reference: 'Referencia',
+    noIncome: 'Sin ingresos', noExpenses: 'Sin gastos', noData: 'Sin datos',
+    noPayments: 'Sin pagos', backToCategories: 'Volver a categorías',
+    despByCat: 'Gastos por categoría', ingByCat: 'Ingresos por categoría',
+    total: 'Total', totalOf: 'Total ',
+    reg: 'reg.',
+    tabSummary: 'Resumen',
+    enableInv: 'Activar inversiones', enableInvSub: 'Muestra la sección de inversiones en cada mes',
+    investments: 'Inversiones', categoriesInv: 'Categorías de inversiones', invested: 'Invertido', netBalance: 'Balance neto',
+    buy: 'Compra', sell: 'Venta', noInv: 'Sin inversiones', totalInvested: 'Total invertido',
+    months: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+    monthAbr: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+    defaultCatDesp: {
+      'Supermercado':'#3266ad','Restaurante':'#e07b39','Alcohol':'#c0392b',
+      'Transporte':'#8e44ad','Salud y deporte':'#27ae60','Ropa o accesorios':'#e91e8c',
+      'Suscripciones':'#16a085','Farmacia':'#2980b9','Alojamiento':'#f39c12',
+      'Ocio':'#9b59b6','Impuestos':'#7f8c8d','Formación':'#1abc9c','Peluquería':'#e74c3c'
+    },
+    defaultCatIng: {
+      'Nómina':'#185FA5','Subsidio':'#BA7517','Beneficios':'#1D9E75'
+    }
+  },
+  en: {
+    appTitle: 'Personal Finances 2026',
+    sync: 'Sync', syncing: 'Loading...', synced: 'Data synced',
+    connect: 'Connect', bannerText: 'Paste your Apps Script URL:',
+    loaderText: 'Connecting to Google Sheets...',
+    configTitle: 'Settings', language: 'Language',
+    categoriesDesp: 'Expense categories', categoriesIng: 'Income categories',
+    addCategory: 'New category...', add: 'Add', edit: 'Edit', save: 'Save',
+    cancel: 'Cancel', delete: 'Delete',
+    confirmDelete: 'Delete category "{{cat}}"?',
+    confirmDeleteEntry: 'Delete this record?',
+    catExists: 'This category already exists',
+    catEmpty: 'Enter a name for the category',
+    catNameEmpty: 'Name cannot be empty',
+    catUpdated: 'Category updated', catDeleted: 'Category deleted', catAdded: 'Category added',
+    added: 'Added successfully', deleted: 'Deleted',
+    invalidAmount: 'Invalid amount', invalidUrl: 'Invalid URL',
+    errorSaving: 'Error saving: ', errorDeleting: 'Error: ', errorSyncCats: 'Error syncing categories',
+    syncNote: 'Changes sync across all your devices',
+    totalIncome: 'Total income', totalExpenses: 'Total expenses', annualBalance: 'Annual balance',
+    income: 'Income', expenses: 'Expenses', balance: 'Balance',
+    annualSummary: 'Annual summary', monthlyChart: 'Income and expenses by month',
+    distIncome: 'Income distribution', distExpenses: 'Expense distribution',
+    viewDetail: 'View detail', addEntry: '+ Add',
+    category: 'Category', amount: 'Amount', reference: 'Reference',
+    noIncome: 'No income', noExpenses: 'No expenses', noData: 'No data',
+    noPayments: 'No payments', backToCategories: 'Back to categories',
+    despByCat: 'Expenses by category', ingByCat: 'Income by category',
+    total: 'Total', totalOf: 'Total ',
+    reg: 'rec.',
+    tabSummary: 'Summary',
+    enableInv: 'Enable investments', enableInvSub: 'Show the investments section in each month',
+    investments: 'Investments', categoriesInv: 'Investment categories', invested: 'Invested', netBalance: 'Net balance',
+    buy: 'Buy', sell: 'Sell', noInv: 'No investments', totalInvested: 'Total invested',
+    months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+    monthAbr: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    defaultCatDesp: {
+      'Supermarket':'#3266ad','Restaurant':'#e07b39','Alcohol':'#c0392b',
+      'Transport':'#8e44ad','Health & sport':'#27ae60','Clothes & accessories':'#e91e8c',
+      'Subscriptions':'#16a085','Pharmacy':'#2980b9','Accommodation':'#f39c12',
+      'Leisure':'#9b59b6','Taxes':'#7f8c8d','Education':'#1abc9c','Haircut':'#e74c3c'
+    },
+    defaultCatIng: {
+      'Salary':'#185FA5','Benefit':'#BA7517','Profits':'#1D9E75'
+    }
+  }
+};
+
+
+// ---- CATEGORY TRANSLATION MAP ----
+// Maps category names across all 3 languages: [ca, es, en]
+const CAT_TRANS = [
+  ['Supermercat','Supermercado','Supermarket'],
+  ['Restaurant','Restaurante','Restaurant'],
+  ['Alcohol','Alcohol','Alcohol'],
+  ['Transport','Transporte','Transport'],
+  ['Salut i esport','Salud y deporte','Health & sport'],
+  ['Roba o accesoris','Ropa o accesorios','Clothes & accessories'],
+  ['Subscripcions','Suscripciones','Subscriptions'],
+  ['Farmàcia','Farmacia','Pharmacy'],
+  ['Allotjament','Alojamiento','Accommodation'],
+  ['Entrades','Entradas','Tickets'],
+  ['Impostos','Impuestos','Taxes'],
+  ['Formació','Formación','Education'],
+  ['Perruqueria','Peluquería','Haircut'],
+  ['Tabac','Tabaco','Tobacco'],
+  ['Altres','Otros','Others'],
+];
+const ING_TRANS = [
+  ['Worldpackers','Worldpackers','Worldpackers'],
+  ['Família','Familia','Family'],
+  ['Atur','Paro','Unemployment'],
+  ['UGC','UGC','UGC'],
+  ['YouTube','YouTube','YouTube'],
+  ['Altres','Otros','Others'],
+];
+const LANG_IDX = {ca:0, es:1, en:2};
+
+function translateCat(catName, fromLang, toLang) {
+  if (fromLang === toLang) return catName;
+  const fromIdx = LANG_IDX[fromLang];
+  const toIdx = LANG_IDX[toLang];
+  // Check despeses
+  for (const row of CAT_TRANS) {
+    if (row[fromIdx] === catName) return row[toIdx];
+  }
+  // Check ingressos
+  for (const row of ING_TRANS) {
+    if (row[fromIdx] === catName) return row[toIdx];
+  }
+  return catName; // untranslated, keep original
+}
+
+function translateColorMap(colorMap, fromLang, toLang) {
+  if (fromLang === toLang) return colorMap;
+  const newMap = {};
+  Object.entries(colorMap).forEach(([cat, color]) => {
+    const translated = translateCat(cat, fromLang, toLang);
+    newMap[translated] = color;
+  });
+  return newMap;
+}
+
+function translateAllData(fromLang, toLang) {
+  if (fromLang === toLang) return;
+  ALL_MONTHS.forEach(m => {
+    if (!appData[m]) return;
+    appData[m].desp.forEach(r => { r.cat = translateCat(r.cat, fromLang, toLang); });
+    appData[m].ing.forEach(r => { r.cat = translateCat(r.cat, fromLang, toLang); });
+  });
+}
+
+const MONTH_KEYS = ['Gen','Feb','Març','Abril','Maig','Juny','Jul','Ago','Set','Oct','Nov','Des'];
+const ALL_MONTHS = ['Gen2026','Feb2026','Març2026','Abril2026','Maig2026','Juny2026',
+                    'Jul2026','Ago2026','Set2026','Oct2026','Nov2026','Des2026'];
+
+function getMonthsForYear(year) {
+  return MONTH_KEYS.map(m => m+year);
+}
+function getActiveMonths() {
+  return getMonthsForYear(activeYear);
+}
+
+let currentLang = localStorage.getItem('appLang') || 'ca';
+let activeYear = new Date().getFullYear();
+let T = TRANSLATIONS[currentLang];
+let CAT_COLORS = Object.assign({}, T.defaultCatDesp);
+let ING_COLORS = Object.assign({}, T.defaultCatIng);
+
+let INV_COLORS={'ETF':'#0f6e56','Accions':'#185FA5','Cryptos':'#BA7517'};
+function getColorMap(t){return t==='desp'?CAT_COLORS:t==='ing'?ING_COLORS:INV_COLORS;}
+
+// Static 2025 data embedded from Excel
+const STATIC_DATA_2025 = {"Gen2025":{"ing":[{"cat":"Altres","amount":429.33,"ref":"GrowPro - last salary","date":""},{"cat":"Altres","amount":57.0,"ref":"Voluntariat","date":""},{"cat":"Família","amount":150.0,"ref":"Reis","date":""},{"cat":"Altres","amount":93.45,"ref":"Pick up Airport Alba","date":""},{"cat":"Altres","amount":169.89,"ref":"GrowPro - Affiliate??","date":""}],"desp":[{"cat":"Supermercat","amount":2.39,"ref":"Aigua i fruita","date":""},{"cat":"Supermercat","amount":8.0,"ref":"Verdures, xocolata, feta","date":""},{"cat":"Supermercat","amount":2.5,"ref":"Cafe + roll + platan","date":""},{"cat":"Supermercat","amount":10.67,"ref":"Entrecot, patates, verdures, hummus, antimosquits","date":""},{"cat":"Transport","amount":5.0,"ref":"Ubers","date":""},{"cat":"Restaurant","amount":4.3,"ref":"Pizza margeritta","date":""},{"cat":"Supermercat","amount":8.95,"ref":"Pollastre, ous, tonyina, pernil dolç","date":""},{"cat":"Cafe","amount":1.57,"ref":"","date":""},{"cat":"Transport","amount":1.66,"ref":"Anada city","date":""},{"cat":"Tabac","amount":2.4,"ref":"","date":""},{"cat":"Alcohol","amount":3.38,"ref":"Birra deux","date":""},{"cat":"Cafe","amount":2.33,"ref":"","date":""},{"cat":"Supermercat","amount":6.17,"ref":"Verdures, aigua, oregano, galetes","date":""},{"cat":"Farmàcia","amount":15.75,"ref":"Crema solar","date":""},{"cat":"Restaurant","amount":7.7,"ref":"Burguer i nachos","date":""},{"cat":"Alcohol","amount":6.0,"ref":"2 birres","date":""},{"cat":"Alcohol","amount":6.7,"ref":"Brandy and coke","date":""},{"cat":"Transport","amount":2.64,"ref":"Uber modular","date":""},{"cat":"Tickets","amount":7.7,"ref":"Modular","date":""},{"cat":"Tabac","amount":2.33,"ref":"","date":""},{"cat":"Alcohol","amount":3.2,"ref":"Birra Long st","date":""},{"cat":"Supermercat","amount":2.89,"ref":"Esmorzar Lions Head","date":""},{"cat":"Restaurant","amount":3.4,"ref":"Burger i patates","date":""},{"cat":"Telefonía","amount":14.26,"ref":"Airtime vodacom","date":""},{"cat":"Supermercat","amount":6.49,"ref":"pasta, avo, tuna...","date":""},{"cat":"Flights","amount":13.99,"ref":"Tarifa canvi de vol Namibia SA","date":""},{"cat":"Cafe","amount":1.0,"ref":"","date":""},{"cat":"Supermercat","amount":3.78,"ref":"","date":""},{"cat":"Tabac","amount":2.1,"ref":"","date":""},{"cat":"Restaurant","amount":15.07,"ref":"Italià depedida Abdul","date":""},{"cat":"Transport","amount":2.79,"ref":"Bolt anada a Kloof","date":""},{"cat":"Alcohol","amount":2.1,"ref":"Birra Yours Truly","date":""},{"cat":"Supermercat","amount":1.23,"ref":"Croissant","date":""},{"cat":"Supermercat","amount":9.9,"ref":"pasta, verdures, formatge, pernil, beans, carn","date":""},{"cat":"Transport","amount":1.28,"ref":"","date":""},{"cat":"Supermercat","amount":3.13,"ref":"Wraps i garrafa daigua","date":""},{"cat":"Cafe","amount":1.6,"ref":"","date":""},{"cat":"Supermercat","amount":4.26,"ref":"Pollastre, aigua, cocacola i sindria","date":""},{"cat":"Transport","amount":1.5,"ref":"","date":""},{"cat":"Tabac","amount":2.3,"ref":"","date":""},{"cat":"Alcohol","amount":2.3,"ref":"Birra harrington st","date":""},{"cat":"Alcohol","amount":8.42,"ref":"Birra salitos harrington","date":""},{"cat":"Entrada","amount":12.8,"ref":"Entrada arcade i modular","date":""},{"cat":"Transport","amount":3.5,"ref":"","date":""},{"cat":"Alcohol","amount":2.1,"ref":"Birra arcade","date":""},{"cat":"Restaurant","amount":3.4,"ref":"Burger amb fries","date":""},{"cat":"Supermercat","amount":3.1,"ref":"Pollastre, ceba tomaquet","date":""},{"cat":"Tabac","amount":2.1,"ref":"","date":""},{"cat":"Alcohol","amount":1.55,"ref":"Birra amb alba","date":""},{"cat":"Restaurant","amount":1.66,"ref":"Esmorzar n@h","date":""},{"cat":"Rugby","amount":5.1,"ref":"Stormers sale sharks","date":""},{"cat":"Alcohol","amount":5.1,"ref":"6pack black label","date":""},{"cat":"Roba","amount":10.2,"ref":"Gorra Stormers","date":""},{"cat":"Alcohol","amount":5.1,"ref":"Birres rugby","date":""},{"cat":"Tabac","amount":5.1,"ref":"","date":""},{"cat":"Supermercat","amount":2.96,"ref":"Burguers i verdures","date":""},{"cat":"Alcohol","amount":20.4,"ref":"3 cubatas i dos birres","date":""},{"cat":"Entrada","amount":4.0,"ref":"Village idiot","date":""},{"cat":"Transport","amount":3.2,"ref":"Dos ubers","date":""},{"cat":"Restaurant","amount":6.6,"ref":"Pepperoni andiccio after pary","date":""},{"cat":"Supermercat","amount":2.3,"ref":"Aigua, iogurt i kitkat","date":""},{"cat":"Supermercat","amount":3.4,"ref":"Cafe + entrepa + platan + aigua","date":""},{"cat":"Transport","amount":1.5,"ref":"","date":""},{"cat":"Supermercat","amount":7.4,"ref":"Pasta giovanni i hike lions","date":""},{"cat":"Restaurant","amount":2.95,"ref":"","date":""},{"cat":"Supermercat","amount":6.7,"ref":"","date":""},{"cat":"Tabac","amount":4.3,"ref":"","date":""},{"cat":"Transport","amount":3.3,"ref":"","date":""},{"cat":"Alcohol","amount":13.0,"ref":"","date":""},{"cat":"Restaurant","amount":6.7,"ref":"Andiccio afterparty","date":""},{"cat":"Supermercat","amount":2.3,"ref":"","date":""},{"cat":"Tabac","amount":2.2,"ref":"","date":""},{"cat":"Supermercat","amount":3.2,"ref":"Esmorzar hike","date":""},{"cat":"Restaurant","amount":18.6,"ref":"Fish and chips, calamars, vi i cerve","date":""},{"cat":"Restaurant","amount":4.2,"ref":"Burger afterhike","date":""},{"cat":"Supermercat","amount":3.0,"ref":"Esmorzar","date":""},{"cat":"Telefonía","amount":3.5,"ref":"","date":""},{"cat":"Tabac","amount":2.1,"ref":"","date":""},{"cat":"Alcohol","amount":2.9,"ref":"Birra The Rock","date":""},{"cat":"Restaurant","amount":6.3,"ref":"The rock, wrap","date":""},{"cat":"Cafe","amount":4.66,"ref":"Cafe i croissant i aigua","date":""},{"cat":"Allotjament","amount":58.0,"ref":"2 nits hostel + una d'airbnb","date":""},{"cat":"Escapada 3 dies","amount":63.0,"ref":"2 wine tasting, compra menjar, sabó, gasolina, etc.  ","date":""},{"cat":"Restaurant","amount":4.6,"ref":"","date":""},{"cat":"Restaurant","amount":2.3,"ref":"Burger","date":""},{"cat":"Alcohol","amount":4.67,"ref":"","date":""},{"cat":"Supermercat","amount":8.6,"ref":"","date":""},{"cat":"Tabac","amount":2.1,"ref":"","date":""},{"cat":"Transport","amount":2.25,"ref":"","date":""},{"cat":"Alcohol","amount":3.1,"ref":"","date":""},{"cat":"Restaurant","amount":2.7,"ref":"","date":""},{"cat":"Restaurant","amount":1.7,"ref":"esmorzar roll i cafe","date":""},{"cat":"Supermercat","amount":2.3,"ref":"","date":""},{"cat":"Tabac","amount":3.4,"ref":"camel blue","date":""},{"cat":"Transport","amount":8.3,"ref":"Parking airport","date":""},{"cat":"Restaurant","amount":5.2,"ref":"giovannis cocacola i aigua","date":""},{"cat":"Restaurant","amount":12.2,"ref":"Esmorzar pizza i dinar","date":""},{"cat":"Supermercat","amount":7.0,"ref":"","date":""},{"cat":"Tabac","amount":4.3,"ref":"","date":""},{"cat":"Pelu","amount":12.0,"ref":"","date":""},{"cat":"Alcohol","amount":12.5,"ref":"","date":""},{"cat":"Transport","amount":1.5,"ref":"","date":""},{"cat":"Supermercat","amount":8.7,"ref":"","date":""},{"cat":"Restaurant","amount":25.0,"ref":"","date":""},{"cat":"Roba","amount":6.2,"ref":"Camisa blanca x viatge","date":""},{"cat":"Transport","amount":6.8,"ref":"","date":""},{"cat":"Alcohol","amount":17.8,"ref":"","date":""},{"cat":"Entrada","amount":4.14,"ref":"","date":""},{"cat":"Supermercat","amount":8.3,"ref":"Labneh, pasta, salsa tomaquet, coke, pa i ceba","date":""},{"cat":"Transport","amount":3.3,"ref":"anada i tornada hike ","date":""},{"cat":"Restaurant","amount":1.7,"ref":"esmorzar hike","date":""},{"cat":"Restaurant","amount":2.65,"ref":"","date":""},{"cat":"Telefonía","amount":5.6,"ref":"","date":""},{"cat":"Ulleres","amount":59.0,"ref":"","date":""},{"cat":"Allotjament","amount":12.5,"ref":"1 nit neverathome","date":""},{"cat":"Supermercat","amount":3.6,"ref":"","date":""},{"cat":"Restaurant","amount":2.68,"ref":"Burguer ","date":""},{"cat":"Alcohol","amount":1.55,"ref":"","date":""},{"cat":"Restaurant","amount":3.35,"ref":"Pasta giovannis","date":""},{"cat":"Restaurant","amount":4.66,"ref":"wrap i amanida","date":""},{"cat":"Supermercat","amount":1.76,"ref":"iogurt i oreos","date":""},{"cat":"Roba","amount":22.5,"ref":"Pantalons llargs H&M","date":""},{"cat":"Coses","amount":10.3,"ref":"ultima nit cape town","date":""},{"cat":"Transport","amount":3.21,"ref":"uber tornada de kloof","date":""},{"cat":"Alcohol","amount":23.3,"ref":"4 birres i 2 cubis","date":""},{"cat":"Restaurant","amount":7.8,"ref":"Hudsons, burguer amb chips i birra","date":""},{"cat":"Entrada","amount":5.2,"ref":"deux","date":""},{"cat":"Restaurant","amount":2.48,"ref":"","date":""},{"cat":"Supermercat","amount":8.0,"ref":"","date":""},{"cat":"Farmàcia","amount":6.4,"ref":"Repelent antimosquits a mitges leo","date":""},{"cat":"Roba","amount":2.6,"ref":"Locker ","date":""},{"cat":"Cafe","amount":1.7,"ref":"","date":""}],"inv":[]},"Feb2025":{"ing":[{"cat":"YouTube","amount":72.73,"ref":"","date":""}],"desp":[{"cat":"Transport","amount":3.95,"ref":"Airport","date":""},{"cat":"Transport","amount":7.3,"ref":"Airport vic falls","date":""},{"cat":"Supermercat","amount":9.72,"ref":"Esmorzar i dinar","date":""},{"cat":"Tabac","amount":1.0,"ref":"","date":""},{"cat":"Alcohol","amount":3.0,"ref":"","date":""},{"cat":"Supermercat","amount":4.52,"ref":"Sopar","date":""},{"cat":"Restaurant","amount":2.0,"ref":"Coke","date":""},{"cat":"Restaurant","amount":22.0,"ref":"Sopar vic falls","date":""},{"cat":"Farmàcia","amount":2.5,"ref":"Repelent","date":""},{"cat":"Transport","amount":2.3,"ref":"Baobab vic falls","date":""},{"cat":"Supermercat","amount":5.25,"ref":"Coke aigua ametlles platans","date":""},{"cat":"Alcohol","amount":4.72,"ref":"4 birres","date":""},{"cat":"Shopping","amount":8.0,"ref":"Head torch","date":""},{"cat":"Restaurant","amount":11.79,"ref":"Burger amb cocacola","date":""},{"cat":"Tips","amount":5.2,"ref":"Tip safari chobe river","date":""},{"cat":"Tips","amount":5.2,"ref":"Safari drive chobe","date":""},{"cat":"Supermercat","amount":1.94,"ref":"","date":""},{"cat":"Tabac","amount":6.0,"ref":"","date":""},{"cat":"Supermercat","amount":4.49,"ref":"Patates cocacola aigua galetes chiclets","date":""},{"cat":"Restaurant","amount":16.62,"ref":"","date":""},{"cat":"Alcohol","amount":2.56,"ref":"1l black label","date":""},{"cat":"Tips","amount":15.4,"ref":"Polers","date":""},{"cat":"Souvenirs","amount":17.0,"ref":"Samarreta zim i hipo, collarets","date":""},{"cat":"Supermercat","amount":6.9,"ref":"","date":""},{"cat":"Alcohol","amount":1.5,"ref":"500ml bl","date":""},{"cat":"Supermercat","amount":6.66,"ref":"Dinar","date":""},{"cat":"Alcohol","amount":1.88,"ref":"Birra arribada windhoek","date":""},{"cat":"Supermercat","amount":5.87,"ref":"","date":""},{"cat":"Restaurant","amount":8.66,"ref":"Dinar Windhoek","date":""},{"cat":"Restaurant","amount":9.0,"ref":"Sopar joe's beerhouse windhoek","date":""},{"cat":"Supermercat","amount":3.95,"ref":"Dinar on the road a etosha","date":""},{"cat":"Supermercat","amount":2.08,"ref":"Gelat","date":""},{"cat":"Restaurant","amount":3.36,"ref":"Sandwich i chips","date":""},{"cat":"Supermercat","amount":3.79,"ref":"Energy drink i dinar","date":""},{"cat":"Tabac","amount":4.03,"ref":"","date":""},{"cat":"Supermercat","amount":4.15,"ref":"","date":""},{"cat":"Restaurant","amount":7.85,"ref":"Burger palmawang","date":""},{"cat":"Supermercat","amount":1.3,"ref":"2 energy","date":""},{"cat":"Tickets","amount":6.75,"ref":"Visita Damara tribe","date":""},{"cat":"Tips","amount":11.41,"ref":"Tip Materepo Himba tribe","date":""},{"cat":"Souvenirs","amount":8.7,"ref":"Pulsera Darama i Himba, mineral","date":""},{"cat":"Allotjament","amount":13.0,"ref":"Campsite Twyfelfontein","date":""},{"cat":"Alcohol","amount":3.66,"ref":"","date":""},{"cat":"Restaurant","amount":8.47,"ref":"Pizza swako","date":""},{"cat":"Supermercat","amount":1.83,"ref":"Roll + patates","date":""},{"cat":"Souvenirs","amount":23.4,"ref":"Samarreta namibia + imans i clauer","date":""},{"cat":"Restaurant","amount":12.59,"ref":"Burger i birra","date":""},{"cat":"Supermercat","amount":1.79,"ref":"Aigua i barrita","date":""},{"cat":"Tabac","amount":4.0,"ref":"Tabac a swako i windhoek","date":""},{"cat":"Supermercat","amount":6.73,"ref":"Dinar windhoek aigua cola i oreos","date":""},{"cat":"Allotjament","amount":22.0,"ref":"Deadvlei","date":""},{"cat":"Allotjament","amount":28.0,"ref":"Swako","date":""},{"cat":"Tips","amount":63.0,"ref":"Lulu i Ian","date":""},{"cat":"Transport","amount":12.5,"ref":"Anada aeroport windhoek + festa","date":""},{"cat":"Alcohol","amount":15.68,"ref":"2 Birra, 2 brandy ","date":""},{"cat":"Entrades","amount":9.38,"ref":"Texas i village","date":""},{"cat":"Tabac","amount":2.43,"ref":"","date":""},{"cat":"Restaurant","amount":4.49,"ref":"Maccas after party","date":""},{"cat":"Supermercat","amount":3.55,"ref":"Esmorzar roll platan aigua cafe","date":""},{"cat":"Supermercat","amount":5.95,"ref":"Dinar sushi","date":""},{"cat":"Transport","amount":3.12,"ref":"Anada the rock","date":""},{"cat":"Restaurant","amount":10.5,"ref":"Gyros x2","date":""},{"cat":"Restaurant","amount":3.39,"ref":"Sopar","date":""},{"cat":"Perruqueria","amount":11.99,"ref":"","date":""},{"cat":"Alcohol","amount":6.22,"ref":"2 birres mojos","date":""},{"cat":"Supermercat","amount":3.47,"ref":"Entrepa, aigua i yogurt","date":""},{"cat":"Transport","amount":4.81,"ref":"Bolt aeroport cape town","date":""},{"cat":"Supermercat","amount":3.36,"ref":"Pasta giovannis","date":""},{"cat":"Souvenirs","amount":21.18,"ref":"Regals familia","date":""},{"cat":"Transport","amount":4.0,"ref":"Tornada clifton","date":""},{"cat":"Supermercat","amount":3.7,"ref":"Roll, aigua i sandwich","date":""},{"cat":"Restaurant","amount":3.32,"ref":"Burger amb patates","date":""},{"cat":"Supermercat","amount":1.9,"ref":"aigua roma","date":""},{"cat":"Birres","amount":14.4,"ref":"2 amb cantos i 2 amb uri, 1 i una convidada","date":""},{"cat":"Tabac","amount":9.0,"ref":"Paquet d'horizon i boquilles","date":""},{"cat":"Subscripcions","amount":27.07,"ref":"","date":""}],"inv":[]},"Març2025":{"ing":[{"cat":"Família","amount":150.0,"ref":"Iaia Nadal","date":""},{"cat":"Família","amount":50.0,"ref":"Avi Jardí","date":""},{"cat":"Família","amount":150.0,"ref":"Regal papas","date":""},{"cat":"Família","amount":70.0,"ref":"Regal Iaia Rosa","date":""},{"cat":"Família","amount":20.0,"ref":"Clara cumple","date":""},{"cat":"UGC","amount":300.0,"ref":"UGC","date":""},{"cat":"Altres","amount":3.64,"ref":"Intereses","date":""}],"desp":[{"cat":"Restaurant","amount":5.45,"ref":"llom amb formatge sortida amb bici","date":""},{"cat":"Subscripcions","amount":27.07,"ref":"","date":""},{"cat":"Transport","amount":12.55,"ref":"T-10","date":""},{"cat":"Cafe","amount":11.3,"ref":"Caffe i pasta amb Aleksa","date":""},{"cat":"Alcohol","amount":6.6,"ref":"Barça benfica","date":""},{"cat":"Tickets","amount":25.0,"ref":"Cumple xenia + regal","date":""},{"cat":"Tickets","amount":25.42,"ref":"flori andrés campo cumple","date":""},{"cat":"Alcohol","amount":8.77,"ref":"ron, cocacola i chiclets","date":""},{"cat":"Restaurant","amount":18.0,"ref":"espinica cumple edu","date":""},{"cat":"Tickets","amount":17.0,"ref":"moon + guardarroba","date":""},{"cat":"Alcohol","amount":2.3,"ref":"birra abans cumple edu","date":""},{"cat":"Alcohol","amount":15.0,"ref":"Coses","date":""},{"cat":"Restaurant","amount":2.6,"ref":"Aquarius","date":""},{"cat":"Alcohol","amount":4.4,"ref":"2 birres xina","date":""},{"cat":"Alcohol","amount":5.3,"ref":"Birres akelarre 3 de març","date":""},{"cat":"Supermercat","amount":3.9,"ref":"Barreja alcohol casa robert","date":""},{"cat":"Alcohol","amount":11.0,"ref":"2 birresn fury i wolf","date":""},{"cat":"Transport","amount":14.0,"ref":"Taxis fury (2 per l'anada) ","date":""},{"cat":"Tickets","amount":25.0,"ref":"After fury wolf","date":""},{"cat":"Tabac","amount":5.9,"ref":"","date":""},{"cat":"Alcohol","amount":2.4,"ref":"Birra amb Jordi","date":""},{"cat":"Alcohol","amount":5.35,"ref":"Birres a ake","date":""},{"cat":"Alcohol","amount":2.9,"ref":"birra i mezcla","date":""},{"cat":"Alcohol","amount":15.0,"ref":"3 birres tardeo","date":""},{"cat":"Supermercat","amount":1.95,"ref":"Fanta + donuts","date":""},{"cat":"Transport","amount":8.0,"ref":"Gasolina anar i tornar Girona","date":""},{"cat":"Tabac","amount":7.2,"ref":"Horizon liar","date":""},{"cat":"Restaurant","amount":8.0,"ref":"Volta figueres","date":""},{"cat":"Transport","amount":9.18,"ref":"Gasolina figueres","date":""},{"cat":"Perruqueria","amount":18.0,"ref":"","date":""},{"cat":"Transport","amount":2.33,"ref":"Zona blava santq","date":""},{"cat":"Restaurant","amount":17.39,"ref":"Dinar i coffe amb skye","date":""},{"cat":"Roba","amount":115.9,"ref":"Bambes nike, jaqueta Elesse","date":""},{"cat":"Transport","amount":12.55,"ref":"T10","date":""},{"cat":"Formació","amount":1.0,"ref":"IA","date":""},{"cat":"Alcohol","amount":2.2,"ref":"Birra china","date":""},{"cat":"Roba","amount":53.47,"ref":"Cartera valentino i sudadera napapijri","date":""}],"inv":[]},"Abril2025":{"ing":[{"cat":"Família","amount":200.0,"ref":"iaia lola aniversari","date":""},{"cat":"Família","amount":50.0,"ref":"iaia rosa mona","date":""}],"desp":[{"cat":"Farmàcia","amount":3.0,"ref":"Suero fisiologico y jeringa","date":""},{"cat":"Restaurant","amount":2.2,"ref":"Aquarius","date":""},{"cat":"Alcohol","amount":15.0,"ref":"Coses","date":""},{"cat":"Alcohol","amount":6.4,"ref":"Birres bar chino","date":""},{"cat":"Alcohol","amount":3.25,"ref":"Bar yus","date":""},{"cat":"Transport","amount":6.0,"ref":"Diferencia anada cantos","date":""},{"cat":"Restaurant","amount":8.5,"ref":"Menu kebab ","date":""},{"cat":"Alcohol","amount":7.0,"ref":"Negrita cocacola xiclets","date":""},{"cat":"Extres festa","amount":10.0,"ref":"Guardarrobes + aigua + ventall","date":""},{"cat":"Supermercat","amount":3.0,"ref":"Aigua cocacola donuts","date":""},{"cat":"Restaurant","amount":6.0,"ref":"Lomo queso i cocacola","date":""},{"cat":"Restaurant","amount":8.5,"ref":"Barça borusia mario","date":""},{"cat":"Tabac","amount":5.9,"ref":"Bar yus x flori","date":""},{"cat":"Alcohol","amount":4.8,"ref":"Birres amb mariona","date":""},{"cat":"Restaurant","amount":23.2,"ref":"Sopar amb mariona","date":""},{"cat":"Tabac","amount":6.5,"ref":"horizon liar","date":""},{"cat":"Supermercat","amount":3.37,"ref":"Pa i birres bbq","date":""},{"cat":"Restaurant","amount":2.3,"ref":"Fanta bbq","date":""},{"cat":"Alcohol","amount":22.3,"ref":"Cubis birres i sopar china","date":""},{"cat":"Transport","amount":9.88,"ref":"Cooltra bcn amb mariona","date":""},{"cat":"Tabac","amount":5.9,"ref":"chino gracia mariona","date":""},{"cat":"Alcohol","amount":15.0,"ref":"Birres llafranch","date":""},{"cat":"Restaurant","amount":16.0,"ref":"Pizza + 2 birres","date":""},{"cat":"Supermercat","amount":3.54,"ref":"2 birres + napolitana atun + aigua","date":""},{"cat":"Subscripcions","amount":27.07,"ref":"","date":""},{"cat":"Apostes","amount":10.0,"ref":"Bet365","date":""},{"cat":"Transport","amount":1.29,"ref":"Blablacar","date":""},{"cat":"Alcohol","amount":24.0,"ref":"2 copes i moon","date":""},{"cat":"Alcohol","amount":6.6,"ref":"Birres i nestea baptiste","date":""},{"cat":"Tabac","amount":1.2,"ref":"Boquillas","date":""},{"cat":"Restaurant","amount":3.16,"ref":"2 cafes mariona","date":""},{"cat":"Restaurant","amount":14.45,"ref":"Sopar amb mariona pre partit","date":""},{"cat":"Farmàcia","amount":4.09,"ref":"Ventolín","date":""},{"cat":"Transport","amount":15.0,"ref":"Cooltra","date":""},{"cat":"Restaurant","amount":5.0,"ref":"Kebab dinar","date":""},{"cat":"Transport","amount":22.0,"ref":"T unipersonal 1 mes 1 zona","date":""},{"cat":"Roses","amount":5.0,"ref":"","date":""},{"cat":"Apostes","amount":5.0,"ref":"Final copa","date":""},{"cat":"Supermercat","amount":8.0,"ref":"Final copa casa alan sopar i birres","date":""},{"cat":"Supermercat","amount":2.6,"ref":"Aigua i birra blackout","date":""},{"cat":"Restaurant","amount":2.4,"ref":"Cafe","date":""},{"cat":"Restaurant","amount":7.6,"ref":"Dinar, cafe i aigua bombers manresa","date":""},{"cat":"Restaurant","amount":4.6,"ref":"Mcdo antull diumenge","date":""},{"cat":"Alcohol","amount":5.2,"ref":"Birra cantos","date":""},{"cat":"Tabac","amount":7.8,"ref":"Horizon y mechero","date":""},{"cat":"Perruquería","amount":12.0,"ref":"","date":""},{"cat":"Alcohol","amount":5.2,"ref":"Birres after curs","date":""}],"inv":[]},"Maig2025":{"ing":[{"cat":"UGC","amount":150.0,"ref":"","date":""},{"cat":"YouTube","amount":79.58,"ref":"","date":""},{"cat":"Família","amount":11.0,"ref":"","date":""}],"desp":[{"cat":"Restaurant","amount":12.5,"ref":"Dos birres i braves","date":""},{"cat":"Restaurant","amount":10.15,"ref":"Entrepa buti i 2 clares girona","date":""},{"cat":"Supermercat","amount":6.33,"ref":"","date":""},{"cat":"Alcohol","amount":11.7,"ref":"3 birres maritim joan i mariona","date":""},{"cat":"Restaurant","amount":4.8,"ref":"Gelat cdq","date":""},{"cat":"Restaurant","amount":4.6,"ref":"2 cafes","date":""},{"cat":"Supermercat","amount":3.14,"ref":"Berenar mercadona","date":""},{"cat":"Restaurant","amount":25.0,"ref":"2 pizzes begur","date":""},{"cat":"Supermercat","amount":9.06,"ref":"Kiwis, carn, aigua, amanida, tom","date":""},{"cat":"Roba","amount":10.0,"ref":"Paraigües","date":""},{"cat":"Transport","amount":2.0,"ref":"","date":""},{"cat":"Transport","amount":25.0,"ref":"Gasolina costa brava amb mariona","date":""},{"cat":"Cafè","amount":1.25,"ref":"Uab","date":""},{"cat":"Restaurant","amount":14.6,"ref":"Tornada semis china","date":""},{"cat":"Taxes","amount":5.43,"ref":"taxa homologació stcw","date":""},{"cat":"Restaurant","amount":2.3,"ref":"Cocacola stq vic","date":""},{"cat":"Supermercat","amount":2.95,"ref":"Berenar bici","date":""},{"cat":"Restaurant","amount":19.0,"ref":"Sopar Kanagawa i birres sbd amb Mariona","date":""},{"cat":"Subscripcions","amount":15.08,"ref":"","date":""},{"cat":"Entrades","amount":15.0,"ref":"Bresh","date":""},{"cat":"Restaurant","amount":6.8,"ref":"Kebab after Bresh","date":""},{"cat":"Tabac","amount":5.9,"ref":"indus festa","date":""},{"cat":"Alcohol","amount":4.0,"ref":"5 Birres","date":""},{"cat":"Supermercat","amount":1.45,"ref":"fanta i conos","date":""},{"cat":"Supermercat","amount":1.9,"ref":"powerade i aigua","date":""},{"cat":"Restaurant","amount":8.0,"ref":"Kebab tarragona","date":""},{"cat":"Taxes","amount":1.84,"ref":"Llibreta marítima","date":""},{"cat":"Transport","amount":15.0,"ref":"Gasolina vic","date":""},{"cat":"Tabac","amount":6.5,"ref":"horizon","date":""},{"cat":"Restaurant","amount":25.2,"ref":"Futbol, burguer amb patates i 3 birres","date":""},{"cat":"Roba","amount":20.0,"ref":"Samarreta Barça x Travis Raphinha","date":""},{"cat":"Supermercat","amount":2.0,"ref":"Aigua","date":""},{"cat":"Transport","amount":11.33,"ref":"Uber av roma sala b","date":""},{"cat":"Alcohol","amount":11.0,"ref":"Cubis festa eixample","date":""},{"cat":"Supermercat","amount":2.11,"ref":"Napolitanes i aigua","date":""},{"cat":"Restaurant","amount":4.65,"ref":"Braves i cocacola","date":""},{"cat":"Alcohol","amount":11.4,"ref":"Birres previa barça amb mariona","date":""},{"cat":"Restaurant","amount":28.75,"ref":"Sopar timesburg amb mariona","date":""},{"cat":"Transport","amount":11.0,"ref":"Taxi tornada barna rua","date":""},{"cat":"Restaurant","amount":2.6,"ref":"cocacola vila","date":""},{"cat":"Supermercat","amount":1.0,"ref":"fanta bici","date":""},{"cat":"Restaurant","amount":10.69,"ref":"Kebab","date":""},{"cat":"Alcohol","amount":3.2,"ref":"Birra","date":""},{"cat":"Alcohol","amount":9.6,"ref":"Red label","date":""},{"cat":"Tabac","amount":5.9,"ref":"X hola","date":""},{"cat":"Alcohol","amount":13.0,"ref":"Birres hola i city hall","date":""},{"cat":"Entrada","amount":15.0,"ref":"City hall","date":""},{"cat":"Coses","amount":10.0,"ref":"","date":""},{"cat":"Transport","amount":30.0,"ref":"Anada i tornada sitges","date":""},{"cat":"Transport","amount":12.55,"ref":"T-10","date":""},{"cat":"Supermercat","amount":4.15,"ref":"cocacola aigua i galetes amb vic","date":""},{"cat":"Roba","amount":111.0,"ref":"Ulleres Zenni ","date":""},{"cat":"Entrada","amount":31.5,"ref":"Shark sant joan","date":""},{"cat":"Taxes","amount":170.1,"ref":"informe fiscal criptomonedas al completo","date":""},{"cat":"Roba","amount":14.13,"ref":"Recipient especies, nose strips, raqueta, bossa roba, puños","date":""},{"cat":"Supermercat","amount":1.0,"ref":"aquarius bici","date":""},{"cat":"Restaurant","amount":18.62,"ref":"Dinar cumple cantos","date":""},{"cat":"Restaurant","amount":2.0,"ref":"Cafe","date":""},{"cat":"Supermercat","amount":6.35,"ref":"Esmorzar sortida bici","date":""},{"cat":"Transport","amount":5.36,"ref":"30min motos acciona","date":""},{"cat":"Farmàcia","amount":1.56,"ref":"Cetirizina","date":""},{"cat":"Alcohol","amount":23.0,"ref":"4 birres i 3 cubis","date":""}],"inv":[]},"Juny2025":{"ing":[{"cat":"Família","amount":50.0,"ref":"","date":""},{"cat":"Worldpackers","amount":26.16,"ref":"","date":""},{"cat":"UGC","amount":300.0,"ref":"","date":""},{"cat":"Família","amount":70.0,"ref":"Regal sant iaia rosa","date":""},{"cat":"Família","amount":100.0,"ref":"Sant iaia lola","date":""},{"cat":"Família","amount":100.0,"ref":"Sant fam","date":""}],"desp":[{"cat":"Supermercat","amount":4.98,"ref":"nous i monster sortida bici","date":""},{"cat":"Supermercat","amount":2.0,"ref":"galetes i nestea","date":""},{"cat":"Supermercat","amount":1.0,"ref":"","date":""},{"cat":"Entrades","amount":22.6,"ref":"Paco osuna jangueo","date":""},{"cat":"Subscripcions","amount":27.07,"ref":"","date":""},{"cat":"Alcohol","amount":5.5,"ref":"birra xina y 134","date":""},{"cat":"Tabac","amount":5.9,"ref":"winston","date":""},{"cat":"Restaurant","amount":20.0,"ref":"Quinze nits seth","date":""},{"cat":"Restaurant","amount":13.55,"ref":"Mexica sopar seth","date":""},{"cat":"Restaurant","amount":6.7,"ref":"Frankfurt i aigua palau blaugrana","date":""},{"cat":"Alcohol","amount":28.0,"ref":"Cubis","date":""},{"cat":"Farmàcia","amount":3.25,"ref":"Cetirizina","date":""},{"cat":"Supermercat","amount":6.75,"ref":"carbonara, truita i aigua","date":""},{"cat":"Roba o accesoris","amount":15.17,"ref":"cera bici, barretes i 1 gel","date":""},{"cat":"Alcohol","amount":2.2,"ref":"Canvidal","date":""},{"cat":"Supermercat","amount":5.39,"ref":"Anda girona twix aigua monster donuts","date":""},{"cat":"Restaurant","amount":9.0,"ref":"Plat combinat i cocacola chino","date":""},{"cat":"Supermercat","amount":3.0,"ref":"Gelat girona","date":""},{"cat":"Transport","amount":5.0,"ref":"taxi tornada costa breve","date":""},{"cat":"Restaurant","amount":5.1,"ref":"kebab casa mariona","date":""},{"cat":"Roba o accesoris","amount":6.41,"ref":"raqueta, tiras nasals, protector clara i malla mosquits","date":""},{"cat":"Perruqueria","amount":18.0,"ref":"tall de cabell mullet","date":""},{"cat":"Roba o accesoris","amount":56.72,"ref":"Pantalons lino, bermudes texanes, lioosan, crema rinxols","date":""},{"cat":"Roba o accesoris","amount":68.97,"ref":"Culotte i maillot","date":""},{"cat":"Alcohol","amount":2.4,"ref":"birra st joan","date":""},{"cat":"Tabac","amount":8.0,"ref":"horizon i boquilles","date":""},{"cat":"Vols","amount":58.0,"ref":"2 vols d'anada i tornada a Menorca pel Setembre","date":""},{"cat":"Alcohol","amount":7.77,"ref":"Alcohol","date":""},{"cat":"Entrades","amount":45.42,"ref":"Paco osuna bosc tancat","date":""},{"cat":"Alcohol","amount":10.0,"ref":"Cubi dresden","date":""},{"cat":"Transport","amount":11.9,"ref":"Taxi ","date":""},{"cat":"Transport","amount":12.55,"ref":"T10","date":""},{"cat":"Transport","amount":49.2,"ref":"Gasolina","date":""},{"cat":"Alcohol","amount":10.0,"ref":"coses polma","date":""},{"cat":"Transport","amount":3.6,"ref":"parking","date":""},{"cat":"Supermercat","amount":2.05,"ref":"fajitas","date":""},{"cat":"Restaurant","amount":6.3,"ref":"esmorzar barcelona","date":""},{"cat":"Tabac","amount":0.85,"ref":"paper","date":""},{"cat":"Roba o accesoris","amount":87.46,"ref":"Cinturó CK, alpargatas i gorra the north face","date":""},{"cat":"Alcohol","amount":1.8,"ref":"2 birres","date":""},{"cat":"Restaurant","amount":5.3,"ref":"kebab uri","date":""},{"cat":"Alcohol","amount":1.7,"ref":"2 birres","date":""},{"cat":"Allotjament","amount":289.3,"ref":"apartament vacances menorca","date":""},{"cat":"Restaurant","amount":6.1,"ref":"llom formatge i cocacola","date":""},{"cat":"Restaurant","amount":6.41,"ref":"sopar st joan casa uri","date":""},{"cat":"Tabac","amount":1.0,"ref":"paper","date":""},{"cat":"Roba o accesoris","amount":1.0,"ref":"Forat cinturó","date":""},{"cat":"Transport","amount":0.7,"ref":"Zona blava","date":""},{"cat":"Supermercat","amount":2.15,"ref":"Aigua i fanta","date":""},{"cat":"Supermercat","amount":1.2,"ref":"Aigua barna","date":""},{"cat":"Restaurant","amount":6.6,"ref":"Bar virreina clara i cafe","date":""},{"cat":"Tabac","amount":6.5,"ref":"Horizon","date":""},{"cat":"Restaurant","amount":5.2,"ref":"Birra i patates kebab","date":""},{"cat":"Roba o accesoris","amount":47.27,"ref":"2 pantalons + polo negre","date":""},{"cat":"Perruqueria","amount":13.0,"ref":"Repàs mullet abans d marxar costa","date":""},{"cat":"Alcohol","amount":5.0,"ref":"2 birres","date":""},{"cat":"Supermercat","amount":3.59,"ref":"Esmorzar","date":""},{"cat":"Transport","amount":70.0,"ref":"Pujar moto a pals","date":""},{"cat":"Transport","amount":7.0,"ref":"Gasolina","date":""},{"cat":"Supermercat","amount":4.57,"ref":"Espuma afeitar, chiclets i pinta","date":""}],"inv":[]},"Jul2025":{"ing":[{"cat":"Altres","amount":266.81,"ref":"Interpals 4 dies","date":""},{"cat":"Worldpackers","amount":50.95,"ref":"","date":""},{"cat":"UGC","amount":100.0,"ref":"ironhack","date":""}],"desp":[{"cat":"Supermercat","amount":2.79,"ref":"Entrepa i aigua esmorzar","date":""},{"cat":"Alcohol","amount":8.0,"ref":"Birres","date":""},{"cat":"Supermercat","amount":3.43,"ref":"Carn i formatge","date":""},{"cat":"Supermercat","amount":6.13,"ref":"Super vermut i dinar","date":""},{"cat":"Alcohol","amount":2.5,"ref":"Birra","date":""},{"cat":"Restaurant","amount":23.0,"ref":"2 pizzes","date":""},{"cat":"Restaurant","amount":15.95,"ref":"Pizza","date":""},{"cat":"Subscripcions","amount":27.07,"ref":"","date":""},{"cat":"Tabac","amount":5.9,"ref":"","date":""},{"cat":"Entrades","amount":36.0,"ref":"Tramun amb entrada, transport i begudes dins","date":""},{"cat":"Supermercat","amount":22.18,"ref":"Compra carrefour coses pda","date":""},{"cat":"Transport","amount":9.06,"ref":"Gasolina","date":""},{"cat":"Restaurant","amount":1.6,"ref":"Cafe","date":""},{"cat":"Tabac","amount":1.0,"ref":"Mechero","date":""},{"cat":"Supermercat","amount":3.8,"ref":"Pa burguer i cocacola","date":""},{"cat":"Restaurant","amount":1.51,"ref":"Mcflurry","date":""},{"cat":"Supermercat","amount":14.11,"ref":"Aloe vera, fulles afeitar, tirites, menjar","date":""},{"cat":"Supermercat","amount":1.63,"ref":"Ceba i alvocat","date":""},{"cat":"Supermercat","amount":2.95,"ref":"Pastilles rentavaixelles","date":""},{"cat":"Restaurant","amount":3.6,"ref":"Cafes peter","date":""},{"cat":"Transport","amount":6.0,"ref":"Benzina, 12/7","date":""},{"cat":"Alcohol","amount":10.0,"ref":"Tramun","date":""},{"cat":"Supermercat","amount":2.45,"ref":"Napolitana i nestea","date":""},{"cat":"Supermercat","amount":8.6,"ref":"pollastre, cebes, pebort i platan","date":""},{"cat":"Supermercat","amount":1.6,"ref":"aigua sa tuna","date":""},{"cat":"Tabac","amount":6.5,"ref":"horizon","date":""},{"cat":"Alcohol","amount":9.0,"ref":"2 birres + partida futbolin","date":""},{"cat":"Transport","amount":12.97,"ref":"Benzina 16/7","date":""},{"cat":"Supermercat","amount":1.65,"ref":"Napolitana i cafe","date":""},{"cat":"Restaurant","amount":6.8,"ref":"Frikandel i birra","date":""},{"cat":"Alcohol","amount":43.0,"ref":"cubis birres i chupitos felipa","date":""},{"cat":"Alcohol","amount":8.0,"ref":"2 birres santa","date":""},{"cat":"Supermercat","amount":11.88,"ref":"pernil, formatge, xoco, muesli i pa","date":""},{"cat":"Transport","amount":97.97,"ref":"Revisió moto, oli, filtre d aire i bombeta","date":""},{"cat":"Perruqueria","amount":18.0,"ref":"Palafrugell","date":""},{"cat":"Transport","amount":6.63,"ref":"Benzina","date":""},{"cat":"Supermercat","amount":45.99,"ref":"Compra mercadona","date":""},{"cat":"Supermercat","amount":1.11,"ref":"Energy drink i platan","date":""},{"cat":"Alcohol","amount":2.5,"ref":"Birra es mos","date":""},{"cat":"Farmàcia","amount":3.95,"ref":"Gotes oïda i ibup","date":""},{"cat":"Alcohol","amount":12.0,"ref":"birres lluna","date":""},{"cat":"Restaurant","amount":19.0,"ref":"Dinar farolillo tapeo","date":""},{"cat":"Supermercat","amount":2.5,"ref":"Spar suc i galetes","date":""},{"cat":"Formació","amount":265.0,"ref":"1r pagament uni ( a mitges amb fam) ","date":""},{"cat":"Supermercat","amount":5.07,"ref":"Muesli pa fajitas etc","date":""},{"cat":"Transport","amount":8.0,"ref":"Benzina 29/7 27345km 5,8L","date":""},{"cat":"Supermercat","amount":0.75,"ref":"Pa","date":""},{"cat":"Alcohol","amount":22.5,"ref":"Birres","date":""}],"inv":[]},"Ago2025":{"ing":[{"cat":"Altres","amount":1225.14,"ref":"1r sou NCB","date":""},{"cat":"Worldpackers","amount":17.27,"ref":"2 afiliats","date":""},{"cat":"UGC","amount":300.0,"ref":"x3 ironhack","date":""},{"cat":"Altres","amount":24.0,"ref":"Propi","date":""}],"desp":[{"cat":"Entrades","amount":37.56,"ref":"entrada delirium mas sorrer","date":""},{"cat":"Supermercat","amount":37.56,"ref":"mariona deute entrada, compra, birres etc.","date":""},{"cat":"Tabac","amount":7.4,"ref":"Horizon i filtres","date":""},{"cat":"Subscripcions","amount":27.07,"ref":"","date":""},{"cat":"Transport","amount":7.67,"ref":"Benzina 2/8 5.75L","date":""},{"cat":"Alcohol","amount":2.5,"ref":"Birra esclanya","date":""},{"cat":"Restaurant","amount":4.5,"ref":"Frankfurt esclanya","date":""},{"cat":"Allotjament","amount":300.0,"ref":"Pis compartit palafrugell","date":""},{"cat":"Tabac","amount":5.9,"ref":"Winston","date":""},{"cat":"Supermercat","amount":2.5,"ref":"Cocacola","date":""},{"cat":"Alcohol","amount":21.0,"ref":"Cubi i aigües mas sorrer","date":""},{"cat":"Supermercat","amount":2.58,"ref":"Fajitas aigua i galetes","date":""},{"cat":"Restaurant","amount":16.1,"ref":"Sopar palamos uri nico","date":""},{"cat":"Transport","amount":6.0,"ref":"Benzina 4.5L","date":""},{"cat":"Farmàcia","amount":40.78,"ref":"3x hylo gel","date":""},{"cat":"Alcohol","amount":15.0,"ref":"Cubi i birra candela div","date":""},{"cat":"Restaurant","amount":5.65,"ref":"Esmorzar casino pala","date":""},{"cat":"Restaurant","amount":5.2,"ref":"Burger","date":""},{"cat":"Supermercat","amount":8.16,"ref":"Sabo, desodorant, esmorzar","date":""},{"cat":"Restaurant","amount":9.45,"ref":"Pizza curro","date":""},{"cat":"Transport","amount":7.0,"ref":"Benzina 10/8","date":""},{"cat":"Restaurant","amount":32.0,"ref":"Paella carn i marisc solimar","date":""},{"cat":"Restaurant","amount":43.0,"ref":"Sopar sabarra pare mariona","date":""},{"cat":"Supermercat","amount":38.01,"ref":"Compra mercadona 11/8, kit supervivencia","date":""},{"cat":"Supermercat","amount":1.0,"ref":"Aigua","date":""},{"cat":"Restaurant","amount":3.0,"ref":"Big mac","date":""},{"cat":"Alcohol","amount":3.0,"ref":"Birra candela","date":""},{"cat":"Entrades","amount":28.0,"ref":"Mas sorrer","date":""},{"cat":"Transport","amount":7.0,"ref":"2025-08-15 00:00:00","date":""},{"cat":"Supermercat","amount":2.03,"ref":"Llet i aigua","date":""},{"cat":"Tabac","amount":5.9,"ref":"Winston","date":""},{"cat":"Restaurant","amount":4.13,"ref":"Bacon queso curro","date":""},{"cat":"Supermercat","amount":3.9,"ref":"Esmorzar i mocadors","date":""},{"cat":"Alcohol","amount":30.0,"ref":"3 birres i 2 cubis","date":""},{"cat":"Supermercat","amount":1.59,"ref":"Massa pizza","date":""},{"cat":"Alcohol","amount":2.0,"ref":"Canya es mos","date":""},{"cat":"Restaurant","amount":4.61,"ref":"mcdo nuggets patates i beguda","date":""},{"cat":"Tabac","amount":0.8,"ref":"Paper","date":""},{"cat":"Restaurant","amount":6.7,"ref":"Entrepà pernil i cafè","date":""},{"cat":"Supermercat","amount":5.93,"ref":"Cereals llet platan i amanida","date":""},{"cat":"Entrades","amount":12.0,"ref":"Festa casa sa tuna","date":""},{"cat":"Restaurant","amount":12.0,"ref":"Braves birres etc","date":""},{"cat":"Transport","amount":7.0,"ref":"Benzina 20/8 ","date":""},{"cat":"Farmàcia","amount":2.8,"ref":"Avamys","date":""},{"cat":"Supermercat","amount":4.26,"ref":"Fruita iogurts i respall d dents","date":""},{"cat":"Perruqueria","amount":20.0,"ref":"Esos pelos 21/8","date":""},{"cat":"Alcohol","amount":2.5,"ref":"Birra es mos","date":""},{"cat":"Restaurant","amount":3.31,"ref":"Mcdo","date":""},{"cat":"Alcohol","amount":15.0,"ref":"Cubi + aigua","date":""},{"cat":"Restaurant","amount":4.5,"ref":"Kebab","date":""},{"cat":"Restaurant","amount":32.5,"ref":"Arros llafranch","date":""},{"cat":"Supermercat","amount":12.5,"ref":"Ajustant comptes mariona","date":""},{"cat":"Transport","amount":7.0,"ref":"Benzina 25/8","date":""},{"cat":"Supermercat","amount":7.55,"ref":"2 muesli 2 llet d avena 4 platans","date":""},{"cat":"Tabac","amount":5.9,"ref":"Winston masso","date":""},{"cat":"Farmàcia","amount":9.54,"ref":"Antibiòtic oral + òtic i taps silicona oïdes","date":""},{"cat":"Supermercat","amount":7.66,"ref":"Pollastre + formatge","date":""},{"cat":"Transport","amount":27.05,"ref":"Reserva cotxe menorca","date":""},{"cat":"Roba o accesoris","amount":99.6,"ref":"P448 bambes","date":""},{"cat":"Restaurant","amount":24.5,"ref":"Pizza i pasta","date":""},{"cat":"Alcohol","amount":18.0,"ref":"2 Cubis","date":""},{"cat":"Entrades","amount":20.0,"ref":"Vip zsa zsa + copa","date":""},{"cat":"Alcohol","amount":5.4,"ref":"2 birres","date":""},{"cat":"Tabac","amount":5.9,"ref":"Winston pda","date":""},{"cat":"Transport","amount":7.82,"ref":"Benzina 31/8","date":""},{"cat":"Alcohol","amount":7.0,"ref":"2 cerves","date":""},{"cat":"Alcohol","amount":1.8,"ref":"Cerve","date":""},{"cat":"Roba o accesoris","amount":20.0,"ref":"Camisa llarga blau mari","date":""},{"cat":"Alcohol","amount":4.5,"ref":"3 birres","date":""}],"inv":[]},"Set2025":{"ing":[{"cat":"Altres","amount":1190.0,"ref":"","date":""},{"cat":"Altres","amount":1568.93,"ref":"","date":""},{"cat":"Worldpackers","amount":17.3,"ref":"","date":""},{"cat":"Altres","amount":919.86,"ref":"","date":""},{"cat":"UGC","amount":200.0,"ref":"","date":""},{"cat":"YouTube","amount":70.67,"ref":"","date":""},{"cat":"Avis","amount":300.0,"ref":"","date":""}],"desp":[{"cat":"Subscripcions","amount":27.07,"ref":"","date":""},{"cat":"Restaurant","amount":27.0,"ref":"Arros negre amb papa i clara","date":""},{"cat":"Tabac","amount":5.9,"ref":"Winston","date":""},{"cat":"Restaurant","amount":30.0,"ref":"Sopar la fosca","date":""},{"cat":"Supermercat","amount":10.75,"ref":"Fajitas pollastre verdures i gazpatxo ","date":""},{"cat":"Restaurant","amount":7.3,"ref":"Entrepa fuet + suc taronja","date":""},{"cat":"Tabac","amount":10.0,"ref":"2 winston, 1 x zaka","date":""},{"cat":"Restaurant","amount":7.0,"ref":"Kebab","date":""},{"cat":"Transport","amount":8.0,"ref":"2025-08-07 00:00:00","date":""},{"cat":"Restaurant","amount":2.62,"ref":"Mini boc iberic marina","date":""},{"cat":"Supermercat","amount":1.51,"ref":"Aigua i poma ","date":""},{"cat":"Supermercat","amount":2.21,"ref":"Esmorzar mercadona","date":""},{"cat":"Supermercat","amount":10.56,"ref":"Cereals llet amanida aigua i nachos guac","date":""},{"cat":"Alcohol","amount":3.0,"ref":"2 birres","date":""},{"cat":"Alcohol","amount":5.0,"ref":"2 birres bar","date":""},{"cat":"Restaurant","amount":1.5,"ref":"Flauti marina","date":""},{"cat":"Alcohol","amount":6.0,"ref":"Birra pirata","date":""},{"cat":"Alcohol","amount":54.5,"ref":"Fm bella","date":""},{"cat":"Transport","amount":70.0,"ref":"Transport moto","date":""},{"cat":"Restaurant","amount":32.0,"ref":"Sopar Selena i Sultan","date":""},{"cat":"Restaurant","amount":5.9,"ref":"Esmorzar aeroport","date":""},{"cat":"Transport","amount":108.0,"ref":"Cotxe menorca","date":""},{"cat":"Restaurant","amount":8.1,"ref":"Esmorzar Es Mercadal","date":""},{"cat":"Restaurant","amount":31.0,"ref":"Sopar ciutadella ","date":""},{"cat":"Alcohol","amount":7.25,"ref":"Birres sunset artrutx","date":""},{"cat":"Alcohol","amount":15.0,"ref":"Xuri lima","date":""},{"cat":"Restaurant","amount":67.6,"ref":"Sopar fornells","date":""},{"cat":"Restaurant","amount":6.45,"ref":"Cafes patates cocacola","date":""},{"cat":"Supermercat","amount":21.25,"ref":"Productes menorca, 3 formatges i 1 sobrassada","date":""},{"cat":"Transport","amount":2.0,"ref":"Neteja","date":""},{"cat":"Restaurant","amount":9.0,"ref":"Esmorzar maó","date":""},{"cat":"Restaurant","amount":3.0,"ref":"Aigua apartament","date":""},{"cat":"Supermercat","amount":2.2,"ref":"Aigua i aquarius bici","date":""},{"cat":"Supermercat","amount":8.54,"ref":"Form mariona equiv superm","date":""},{"cat":"Roba o accesoris","amount":344.99,"ref":"iPad Air 5 (2022) backmarket","date":""},{"cat":"Roba o accesoris","amount":25.52,"ref":"llapis ipad, teclat i funda ipad, corretja rellotje ","date":""},{"cat":"Supermercat","amount":1.0,"ref":"Fanta","date":""},{"cat":"Alcohol","amount":8.7,"ref":"2 birres 134","date":""},{"cat":"Tabac","amount":5.9,"ref":"Winston 19/9","date":""},{"cat":"Roba o accesoris","amount":10.47,"ref":"Cables rellotge i usbc + 2 cabezals + tires nasals i mitjons","date":""},{"cat":"Restaurant","amount":11.6,"ref":"sopar frankfurt amb mimó","date":""},{"cat":"Alcohol","amount":10.9,"ref":"birres Uni amb Álvaro i Victor ","date":""},{"cat":"Restaurant","amount":3.45,"ref":"cafes amb Mariona","date":""},{"cat":"Roba o accesoris","amount":3.95,"ref":"limpiador  movil, pantalla  y paño pantalla","date":""},{"cat":"Subscripcions","amount":6.05,"ref":"Finiquito adobe","date":""},{"cat":"Entrades","amount":33.99,"ref":"Adam beyer input","date":""},{"cat":"Entrades","amount":55.5,"ref":"Elrow halloween","date":""},{"cat":"Restaurant","amount":12.69,"ref":"Sopar xina puertas","date":""},{"cat":"Tabac","amount":5.75,"ref":"Winston 26/9","date":""},{"cat":"Alcohol","amount":9.0,"ref":"Ronco lopo","date":""},{"cat":"Supermercat","amount":5.0,"ref":"Gels i cocacola","date":""},{"cat":"Alcohol","amount":4.5,"ref":"Birra","date":""},{"cat":"Perruqueria","amount":18.0,"ref":"Mess1ah 23/9","date":""}],"inv":[]},"Oct2025":{"ing":[{"cat":"Worldpackers","amount":8.57,"ref":"","date":""},{"cat":"UGC","amount":300.0,"ref":"","date":""}],"desp":[{"cat":"Supermercat","amount":1.0,"ref":"energy drink bici","date":""},{"cat":"Restaurant","amount":11.6,"ref":"Barça xina 3 birres lomo queso","date":""},{"cat":"Transport","amount":12.55,"ref":"T10","date":""},{"cat":"Supermercat","amount":7.35,"ref":"Dinar","date":""},{"cat":"Tabac","amount":9.05,"ref":"Tabac","date":""},{"cat":"Roba o accesoris","amount":36.95,"ref":"Compra decathlon","date":""},{"cat":"Alcohol","amount":4.4,"ref":"Prendre algo mariona","date":""},{"cat":"Supermercat","amount":1.3,"ref":"Nestea","date":""},{"cat":"Restaurant","amount":4.4,"ref":"Cafes","date":""},{"cat":"Salut i esport","amount":220.0,"ref":"Pagament a Samu per rutina d'exercicis + dieta 3 mesos","date":""},{"cat":"Roba o accesoris","amount":35.74,"ref":"Zalando, bosa per gym i neceser","date":""},{"cat":"Alcohol","amount":3.75,"ref":"Birra amb fonsi ake","date":""},{"cat":"Subscripcions","amount":14.98,"ref":"","date":""},{"cat":"Subscripcions","amount":12.99,"ref":"goodnotes","date":""},{"cat":"Supermercat","amount":6.92,"ref":"Aguacates i fulles d'afeitar","date":""},{"cat":"Restaurant","amount":1.6,"ref":"Cafe st perpetua","date":""},{"cat":"Restaurant","amount":2.6,"ref":"Nestea vila","date":""},{"cat":"Alcohol","amount":15.0,"ref":"coses","date":""},{"cat":"Restaurant","amount":22.0,"ref":"Sopar xino + 2 cubis","date":""},{"cat":"Tabac","amount":5.9,"ref":"Winston x input","date":""},{"cat":"Alcohol","amount":13.0,"ref":"Cubi input","date":""},{"cat":"Alcohol","amount":12.0,"ref":"Aigües input","date":""},{"cat":"Alcohol","amount":4.5,"ref":"Birra 134","date":""},{"cat":"Salut i esport","amount":37.85,"ref":"1kg prote 4kg avena en pols 30g prote 40g choconut zero","date":""},{"cat":"Supermercat","amount":2.2,"ref":"Aquarius + patates","date":""},{"cat":"Transport","amount":2.2,"ref":"Uber a input","date":""},{"cat":"Supermercat","amount":1.1,"ref":"Aquarius","date":""},{"cat":"Supermercat","amount":6.71,"ref":"compra mercadona, aguacate, mongetes, toothpaste...","date":""},{"cat":"Restaurant","amount":36.75,"ref":"2 burguers + patates grans + 3 birres ","date":""},{"cat":"Supermercat","amount":7.2,"ref":"Carn, pastanaga i aigua","date":""},{"cat":"Farmàcia","amount":4.05,"ref":"Cetirizina + avamys","date":""},{"cat":"Formació","amount":14.94,"ref":"Curs trading algoritmic ruben martinez lacity","date":""},{"cat":"Perruqueria","amount":18.0,"ref":"Mess1ah 21/10","date":""},{"cat":"Restaurant","amount":1.6,"ref":"Cafe","date":""},{"cat":"Restaurant","amount":16.0,"ref":"4 birres i lomo queso","date":""},{"cat":"Alcohol","amount":30.79,"ref":"3 roncolas + 4 birres +chupito","date":""},{"cat":"Restaurant","amount":6.7,"ref":"Llom formatge + cocacola","date":""},{"cat":"Supermercat","amount":1.1,"ref":"Nestea","date":""},{"cat":"Tabac","amount":6.5,"ref":"Horizon 29/10","date":""},{"cat":"Alcohol","amount":5.4,"ref":"2 birres lacaleta","date":""},{"cat":"Restaurant","amount":0.6,"ref":"Cafe","date":""}],"inv":[]},"Nov2025":{"ing":[{"cat":"Worldpackers","amount":17.29,"ref":"","date":""},{"cat":"Atur","amount":1469.41,"ref":"Atur setembre i octubre","date":""},{"cat":"Altres","amount":80.0,"ref":"NCB","date":""}],"desp":[{"cat":"Alcohol","amount":23.0,"ref":"Elrow","date":""},{"cat":"Tabac","amount":5.9,"ref":"","date":""},{"cat":"Transport","amount":5.0,"ref":"Uber","date":""},{"cat":"Alcohol","amount":9.0,"ref":"Cubi ","date":""},{"cat":"Transport","amount":27.25,"ref":"Uber tornada a casa","date":""},{"cat":"Restaurant","amount":28.5,"ref":"Tapes sancu","date":""},{"cat":"Restaurant","amount":26.0,"ref":"5hermanos horta","date":""},{"cat":"Supermercat","amount":2.5,"ref":"Aquarius i croissant","date":""},{"cat":"Farmàcia","amount":65.53,"ref":"4xhylo gel + 1 cerave cara","date":""},{"cat":"Roba o accesoris","amount":43.95,"ref":"collaret mk","date":""},{"cat":"Entrades","amount":14.4,"ref":"teatre borràs pel davant i per darrera","date":""},{"cat":"Alcohol","amount":6.0,"ref":"2birres amb mariona","date":""},{"cat":"Transport","amount":5.0,"ref":"Benzina moto","date":""},{"cat":"Subscripcions","amount":14.98,"ref":"","date":""},{"cat":"Supermercat","amount":2.89,"ref":"Espuma afeitar napolitana i aigua","date":""},{"cat":"Alcohol","amount":11.0,"ref":"4 birres ake amb alvaro","date":""},{"cat":"Supermercat","amount":37.0,"ref":"Compra dinar i sopar casa mare mariona","date":""},{"cat":"Restaurant","amount":4.0,"ref":"Cafes","date":""},{"cat":"Alcohol","amount":8.0,"ref":"3 vermouts i 2 pastes La Nou","date":""},{"cat":"Salut i esport","amount":45.0,"ref":"Gym","date":""},{"cat":"Restaurant","amount":4.0,"ref":"Crispetes teatre","date":""},{"cat":"Tabac","amount":1.2,"ref":"Paper","date":""},{"cat":"Alcohol","amount":5.6,"ref":"Cerveza 134","date":""},{"cat":"Restaurant","amount":4.5,"ref":"Kebab","date":""},{"cat":"Roba o accesoris","amount":101.36,"ref":"jaqueta helly hansen","date":""},{"cat":"Roba o accesoris","amount":57.9,"ref":"Pantalons i polo","date":""},{"cat":"Alcohol","amount":10.4,"ref":"4 birres vila amb marioma","date":""},{"cat":"Roba o accesoris","amount":52.9,"ref":"Jersei gstar i pantalo xandall kappa","date":""},{"cat":"Formació","amount":386.77,"ref":"Segona quota uni","date":""},{"cat":"Roba o accesoris","amount":13.23,"ref":"compra aliexpress, funda moto, cables iphone i tires nas","date":""},{"cat":"Restaurant","amount":10.85,"ref":"Sopar xino","date":""},{"cat":"Alcohol","amount":4.6,"ref":"Birres","date":""},{"cat":"Alcohol","amount":2.3,"ref":"Birra","date":""},{"cat":"Supermercat","amount":1.5,"ref":"Refersc i patates","date":""},{"cat":"Restaurant","amount":9.1,"ref":"2 birres i braves abans partit basket","date":""},{"cat":"Roba o accesoris","amount":95.91,"ref":"Casc moto nzi, guants, suport, pots sabo, almohadilla barra","date":""},{"cat":"Alcohol","amount":4.6,"ref":"2 birras","date":""},{"cat":"Altres","amount":2999.0,"ref":"Moto","date":""},{"cat":"Restaurant","amount":24.0,"ref":"Dinar banyoles","date":""},{"cat":"Transport","amount":30.0,"ref":"Gasolina begur","date":""},{"cat":"Supermercat","amount":1.7,"ref":"Pa i pasta","date":""},{"cat":"Entrades","amount":17.0,"ref":"Moon + consu + guardarob","date":""},{"cat":"Restaurant","amount":7.0,"ref":"2 aigües moon","date":""},{"cat":"Restaurant","amount":29.8,"ref":"Sopar cumple laia","date":""},{"cat":"Alcohol","amount":8.5,"ref":"Roncola 134","date":""},{"cat":"Roba o accesoris","amount":36.9,"ref":"Regal nadal mariona ","date":""},{"cat":"Transport","amount":7.74,"ref":"4,5L gasolina moto 25/11","date":""},{"cat":"Perruqueria","amount":18.0,"ref":"Mess1ah 25/11","date":""},{"cat":"Restaurant","amount":13.7,"ref":"barça chelsea bar","date":""},{"cat":"Altres","amount":219.29,"ref":"Assegurança tot risc moto","date":""},{"cat":"Alcohol","amount":6.4,"ref":"2 birres","date":""},{"cat":"Restaurant","amount":16.0,"ref":"Sopar despedida polma","date":""},{"cat":"Supermercat","amount":14.15,"ref":"Ferrero i advent kinder","date":""},{"cat":"Salut i esport","amount":31.06,"ref":"1kg prote i 1 avena","date":""},{"cat":"Alcohol","amount":24.7,"ref":"Birres mariona i aina i braves","date":""},{"cat":"Alcohol","amount":21.4,"ref":"1 birra i 4 cubis","date":""},{"cat":"Tabac","amount":10.8,"ref":"2 paquets winston","date":""},{"cat":"Entrades","amount":3.99,"ref":"Peli oppenheimer","date":""}],"inv":[]},"Des2025":{"ing":[{"cat":"Worldpackers","amount":34.3,"ref":"","date":""},{"cat":"Atur","amount":1049.58,"ref":"Atur Novembre","date":""},{"cat":"UGC","amount":30.0,"ref":"Aiklo","date":""},{"cat":"UGC","amount":1000.0,"ref":"10x Ironhack","date":""},{"cat":"Família","amount":130.0,"ref":"Nadal","date":""}],"desp":[{"cat":"Transport","amount":8.55,"ref":"5,35L gasolina / km 191","date":""},{"cat":"Subscripcions","amount":14.98,"ref":"","date":""},{"cat":"Tabac","amount":7.0,"ref":"Horizon 3/12","date":""},{"cat":"Supermercat","amount":1.2,"ref":"Paper de regal","date":""},{"cat":"Transport","amount":60.0,"ref":"benzina","date":""},{"cat":"Restaurant","amount":145.0,"ref":"restaurants amb mariona cerdanya","date":""},{"cat":"Alcohol","amount":33.0,"ref":"birres amb mariona i cubi badiu","date":""},{"cat":"Supermercat","amount":8.55,"ref":"pa de nous","date":""},{"cat":"Restaurant","amount":7.6,"ref":"cafes a puigcerdà","date":""},{"cat":"Salut i esport","amount":45.0,"ref":"Sorli","date":""},{"cat":"Alcohol","amount":2.8,"ref":"Birra vila alan","date":""},{"cat":"Transport","amount":82.66,"ref":"Revisio 300km moto","date":""},{"cat":"Restaurant","amount":12.1,"ref":"Berenar dulcinea","date":""},{"cat":"Restaurant","amount":24.85,"ref":"Sopar bocata i braves amb mariona","date":""},{"cat":"Transport","amount":6.0,"ref":"3,7L gasolina 373km","date":""},{"cat":"Roba o accesoris","amount":21.16,"ref":"alfombra igni, suport movil, organitzador perf, carregador, tovallola petita gym","date":""},{"cat":"Tabac","amount":1.0,"ref":"mechero","date":""},{"cat":"Supermercat","amount":3.99,"ref":"Turro crema","date":""},{"cat":"Alcohol","amount":2.2,"ref":"Birra floreta","date":""},{"cat":"Roba o accesoris","amount":28.24,"ref":"Samarretes interiors i gorro vans","date":""},{"cat":"Supermercat","amount":14.52,"ref":"Cutxilles alvoc platans aigua desod tovall","date":""},{"cat":"Farmàcia","amount":9.85,"ref":"mucolitic cinfamucol per pit","date":""},{"cat":"Restaurant","amount":19.5,"ref":"Sopar pizzapasta amb vi galindeta","date":""},{"cat":"Alcohol","amount":27.0,"ref":"2 cubis i 2 birres","date":""},{"cat":"Altres","amount":20.0,"ref":"Dècim loteria de nadal","date":""},{"cat":"Roba o accesoris","amount":25.0,"ref":"Gloss cumple clara","date":""},{"cat":"Formació","amount":257.5,"ref":"3ra quota uni","date":""},{"cat":"Perruqueria","amount":18.0,"ref":"Messiah 22/12","date":""},{"cat":"Roba o accesoris","amount":34.58,"ref":"Bosa i neceser regal papa","date":""},{"cat":"Entrades","amount":33.0,"ref":"2 entrades concert bayabaye regal mariona","date":""},{"cat":"Salut i esport","amount":13.0,"ref":"Inscripció unirun 5km 1/3 ","date":""},{"cat":"Alcohol","amount":20.0,"ref":"","date":""},{"cat":"Supermercat","amount":2.4,"ref":"Pa","date":""},{"cat":"Transport","amount":7.0,"ref":"5,43L 24/12","date":""},{"cat":"Alcohol","amount":6.0,"ref":"4 birres ","date":""},{"cat":"Restaurant","amount":5.0,"ref":"2 cafes","date":""},{"cat":"Alcohol","amount":4.6,"ref":"2 birres","date":""},{"cat":"Alcohol","amount":16.0,"ref":"6 birres quinto i partides","date":""},{"cat":"Alcohol","amount":5.4,"ref":"2 birres erreka","date":""},{"cat":"Restaurant","amount":16.1,"ref":"sopar i 2 birres amb mariona dehesa ","date":""},{"cat":"Supermercat","amount":8.7,"ref":"Compra carrefour","date":""},{"cat":"Supermercat","amount":3.7,"ref":"Bonpreu esmorzar","date":""},{"cat":"Tabac","amount":5.95,"ref":"Winston","date":""}],"inv":[]}};
+let investEnabled=localStorage.getItem('investEnabled')==='true';
+let appData={};
+let activeTab = 'Resum';
+let charts = {};
+
+let modalState = null;
+let currentUser = null;
+let authMode = 'login';
+
+function t(key, vars) {
+  let s = T[key] || key;
+  if (vars) Object.entries(vars).forEach(([k,v]) => { s = s.replace('{{'+k+'}}', v); });
+  return s;
+}
+function getMonthLabel(idx) { return T.months[idx]; }
+function getAllLabels() {
+  const labels = { 'Resum': T.tabSummary };
+  getActiveMonths().forEach((m,i) => { labels[m] = T.monthAbr ? T.monthAbr[i] : T.months[i].substring(0,3); });
+  return labels;
+}
+
+function fmt(n) { return (parseFloat(n)||0).toFixed(2)+'€'; }
+function fmtSign(n,isDesp) { return (isDesp?'-':'+')+fmt(n); }
+function sum(arr) { return (arr||[]).reduce((a,b)=>a+(parseFloat(b.amount)||0),0); }
+function getByCat(arr) {
+  const m={};
+  (arr||[]).forEach(r=>{m[r.cat]=(m[r.cat]||0)+r.amount;});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+function getCountByCat(arr) {
+  const m={};
+  (arr||[]).forEach(r=>{
+    if(!m[r.cat])m[r.cat]={total:0,count:0,items:[]};
+    m[r.cat].total+=r.amount;m[r.cat].count++;m[r.cat].items.push(r);
+  });
+  return Object.entries(m).sort((a,b)=>b[1].total-a[1].total);
+}
+function collectAllForType(months,type) {
+  const all=[];
+  months.forEach(m=>(appData[m]&&appData[m][type]||[]).forEach(r=>all.push(r)));
+  return all;
+}
+function destroyCharts(){Object.values(charts).forEach(c=>c.destroy());charts={};}
+function toggleForm(id){document.getElementById(id).classList.toggle('hidden');}
+function todayStr(){
+  const d=new Date();
+  return d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getFullYear();
+}
+
+function normalizeDate(raw) {
+  if (!raw) return '';
+  // Already in DD/MM/YYYY format
+  if (typeof raw === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(raw)) return raw;
+  // Try parsing as a date object or string
+  const d = new Date(raw);
+  if (!isNaN(d.getTime())) {
+    return d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getFullYear();
+  }
+  // Return first 10 chars as fallback
+  return String(raw).substring(0,10);
+}
+
+function setLanguage(lang, reload=true) {
+  currentLang = lang;
+  T = TRANSLATIONS[lang];
+  localStorage.setItem('appLang', lang);
+  if (reload) {
+    applyStaticTranslations();
+    buildNav();
+    render();
+  }
+}
+
+function applyStaticTranslations() {
+  document.getElementById('app-title').textContent = T.appTitle;
+  document.getElementById('sync-btn').textContent = T.sync;
+  document.getElementById('banner-text').textContent = T.bannerText;
+  document.getElementById('banner-btn').textContent = T.connect;
+  document.getElementById('loader-text').textContent = T.loaderText;
+  document.getElementById('cfg-title').textContent = T.configTitle;
+  document.documentElement.lang = currentLang;
+}
+
+window.onload = async () => {
+  T = TRANSLATIONS[currentLang];
+  const now = new Date();
+  activeYear = now.getFullYear();
+  activeTab = MONTH_KEYS[now.getMonth()] + activeYear;
+  applyStaticTranslations();
+  buildNav();
+  const { data:{session} } = await sb.auth.getSession();
+  if (session) { currentUser=session.user; showApp(); }
+  // else: auth-screen already visible by default
+  sb.auth.onAuthStateChange((_,session)=>{ if(session&&!currentUser){currentUser=session.user;showApp();} });
+  document.getElementById('auth-email').addEventListener('keydown',e=>{if(e.key==='Enter')handleAuth();});
+  document.getElementById('auth-password').addEventListener('keydown',e=>{if(e.key==='Enter')handleAuth();});
+};
+
+function showApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('logout-btn').style.display='';
+  loadAll();
+}
+
+function switchAuthTab(mode){
+  authMode=mode;
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&mode==='login')||(i===1&&mode==='register')));
+  document.getElementById('confirm-field').style.display=mode==='register'?'':'none';
+  document.getElementById('auth-btn').textContent=mode==='login'?'Entrar':'Crear compte';
+  document.getElementById('auth-msg').style.display='none';
+}
+
+async function handleAuth(){
+  const email=document.getElementById('auth-email').value.trim();
+  const pass=document.getElementById('auth-password').value;
+  const btn=document.getElementById('auth-btn');
+  document.getElementById('auth-msg').style.display='none';
+  if(!email||!pass){showAuthMsg('Omple tots els camps',true);return;}
+  if(pass.length<6){showAuthMsg('Mínim 6 caràcters',true);return;}
+  if(authMode==='register'){const conf=document.getElementById('auth-confirm').value;if(pass!==conf){showAuthMsg('Les contrasenyes no coincideixen',true);return;}}
+  btn.disabled=true;btn.textContent=authMode==='login'?'Entrant...':'Creant compte...';
+  try{
+    let r;
+    if(authMode==='login') r=await sb.auth.signInWithPassword({email,password:pass});
+    else r=await sb.auth.signUp({email,password:pass});
+    if(r.error)throw r.error;
+    if(authMode==='register'&&r.data.user&&!r.data.session){showAuthMsg('Compte creat! Revisa el teu email.',false);btn.disabled=false;btn.textContent='Crear compte';}
+  }catch(err){showAuthMsg(err.message,true);btn.disabled=false;btn.textContent=authMode==='login'?'Entrar':'Crear compte';}
+}
+
+function showAuthMsg(msg,isError){
+  const el=document.getElementById('auth-msg');
+  el.textContent=msg;el.className='auth-msg '+(isError?'error':'success');el.style.display='';
+}
+
+async function handleLogout(){
+  await sb.auth.signOut();currentUser=null;appData={};
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('app-screen').style.display='none';
+}
+
+async function loadAll(){
+  if(!currentUser)return;
+  const btn=document.getElementById('sync-btn');
+  btn.disabled=true;btn.textContent=T.syncing;
+  try{
+    const{data:cats}=await sb.from('user_categories').select('*').eq('user_id',currentUser.id).single();
+    if(cats){
+      if(cats.desp_colors&&Object.keys(cats.desp_colors).length>0) CAT_COLORS=translateColorMap(cats.desp_colors,'ca',currentLang);
+      if(cats.ing_colors&&Object.keys(cats.ing_colors).length>0) ING_COLORS=translateColorMap(cats.ing_colors,'ca',currentLang);
+      if(cats.inv_colors&&Object.keys(cats.inv_colors).length>0) INV_COLORS=Object.assign({},cats.inv_colors);
+    }
+    const{data:entries,error}=await sb.from('entries').select('*').eq('user_id',currentUser.id);
+    if(error)throw error;
+    appData={};
+    getMonthsForYear(activeYear).forEach(m=>{appData[m]={ing:[],desp:[],inv:[]};});
+    (entries||[]).forEach(e=>{
+      if(!appData[e.month])appData[e.month]={ing:[],desp:[],inv:[]};
+      if(e.type==='inv'){
+        const p=(e.ref||'').split('|');
+        appData[e.month].inv.push({id:e.id,cat:e.cat,amount:parseFloat(e.amount),opType:p[0]==='sell'?'sell':'buy',ref:p.slice(1).join('|'),date:e.date||''});
+      }else{
+        const cat=translateCat(e.cat,'ca',currentLang);
+        appData[e.month][e.type].push({id:e.id,cat,amount:parseFloat(e.amount),ref:e.ref||'',date:e.date||''});
+      }
+    });
+    // Merge 2025 static data
+    Object.keys(STATIC_DATA_2025||{}).forEach(m=>{
+      if(!appData[m])appData[m]={ing:[],desp:[],inv:[]};
+      if(appData[m].ing.length===0)(STATIC_DATA_2025[m].ing||[]).forEach(r=>appData[m].ing.push(r));
+      if(appData[m].desp.length===0)(STATIC_DATA_2025[m].desp||[]).forEach(r=>appData[m].desp.push(r));
+    });
+    render();showToast(T.synced);
+  }catch(err){
+    showToast(T.errorDeleting+err.message,true);
+    getMonthsForYear(activeYear).forEach(m=>{if(!appData[m])appData[m]={ing:[],desp:[],inv:[]};});
+    render();
+  }finally{btn.disabled=false;btn.textContent=T.sync;}
+}
+
+async function addEntry(sheet,type){
+  const cat=document.getElementById(type+'-cat').value;
+  const amt=parseFloat(document.getElementById(type+'-amt').value);
+  const ref=document.getElementById(type+'-ref').value;
+  const btn=document.getElementById(type+'-save-btn');
+  if(!amt||isNaN(amt)||amt<=0){showToast(T.invalidAmount,true);return;}
+  btn.disabled=true;btn.textContent=T.save;
+  const date=todayStr();
+  const catCA=translateCat(cat,currentLang,'ca');
+  try{
+    const{data,error}=await sb.from('entries').insert({user_id:currentUser.id,month:sheet,type,cat:catCA,amount:amt,ref,date}).select().single();
+    if(error)throw error;
+    if(!appData[sheet])appData[sheet]={ing:[],desp:[],inv:[]};
+    appData[sheet][type].push({id:data.id,cat,amount:amt,ref,date});
+    document.getElementById(type+'-amt').value='';
+    document.getElementById(type+'-ref').value='';
+    render();showToast(T.added);
+  }catch(err){showToast(T.errorSaving+err.message,true);}
+  finally{btn.disabled=false;btn.textContent=T.save;}
+}
+
+async function deleteEntry(sheet,type,idx){
+  if(!confirm(T.confirmDeleteEntry))return;
+  const entry=appData[sheet][type][idx];
+  if(!entry||!entry.id)return;
+  try{
+    const{error}=await sb.from('entries').delete().eq('id',entry.id);
+    if(error)throw error;
+    appData[sheet][type].splice(idx,1);render();showToast(T.deleted);
+  }catch(err){showToast(T.errorDeleting+err.message,true);}
+}
+
+async function addInvestment(sheet){
+  const cat=document.getElementById('inv-cat-'+sheet).value;
+  const opType=document.getElementById('inv-op-'+sheet).value;
+  const amt=parseFloat(document.getElementById('inv-amt-'+sheet).value);
+  const ref=document.getElementById('inv-ref-'+sheet).value;
+  const btn=document.getElementById('inv-save-btn-'+sheet);
+  if(!amt||isNaN(amt)||amt<=0){showToast(T.invalidAmount,true);return;}
+  btn.disabled=true;btn.textContent=T.save;
+  const date=todayStr();
+  try{
+    const{data,error}=await sb.from('entries').insert({user_id:currentUser.id,month:sheet,type:'inv',cat,amount:amt,ref:opType+'|'+ref,date}).select().single();
+    if(error)throw error;
+    if(!appData[sheet])appData[sheet]={ing:[],desp:[],inv:[]};
+    appData[sheet].inv.push({id:data.id,cat,amount:amt,opType,ref,date});
+    document.getElementById('inv-amt-'+sheet).value='';
+    document.getElementById('inv-ref-'+sheet).value='';
+    render();showToast(T.added);
+  }catch(err){showToast(T.errorSaving+err.message,true);}
+  finally{btn.disabled=false;btn.textContent=T.save;}
+}
+
+async function deleteInvestment(sheet,idx){
+  if(!confirm(T.confirmDeleteEntry))return;
+  const entry=(appData[sheet]?.inv||[])[idx];
+  if(!entry||!entry.id)return;
+  try{
+    const{error}=await sb.from('entries').delete().eq('id',entry.id);
+    if(error)throw error;
+    appData[sheet].inv.splice(idx,1);render();showToast(T.deleted);
+  }catch(err){showToast(T.errorDeleting+err.message,true);}
+}
+
+async function syncCategories(){
+  if(!currentUser)return;
+  try{
+    const despCA=translateColorMap(CAT_COLORS,currentLang,'ca');
+    const ingCA=translateColorMap(ING_COLORS,currentLang,'ca');
+    await sb.from('user_categories').upsert({
+      user_id:currentUser.id,desp_colors:despCA,ing_colors:ingCA,inv_colors:INV_COLORS,updated_at:new Date().toISOString()
+    },{onConflict:'user_id'});
+  }catch(err){showToast(T.errorSyncCats,true);}
+}
+
+
